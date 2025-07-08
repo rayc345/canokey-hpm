@@ -10,7 +10,7 @@
 #include <common.h>
 #include <crypto-util.h>
 #include <ctap.h>
-#include <ctaphid.h>
+//#include <ctaphid.h>
 #include <device.h>
 #include <hmac.h>
 #include <memzero.h>
@@ -38,8 +38,7 @@
 
 #define WAIT(timeout_response)                                                                                         \
   do {                                                                                                                 \
-    if (is_nfc()) break;\
-    switch (wait_for_user_presence(current_cmd_src == CTAP_SRC_HID ? WAIT_ENTRY_CTAPHID : WAIT_ENTRY_CCID)) {                                                              \
+    switch (wait_for_user_presence(WAIT_ENTRY_CTAPHID)) {                                                              \
     case USER_PRESENCE_CANCEL:                                                                                         \
       return CTAP2_ERR_KEEPALIVE_CANCEL;                                                                               \
     case USER_PRESENCE_TIMEOUT:                                                                                        \
@@ -49,8 +48,7 @@
 
 #define KEEPALIVE()                                                                                                    \
   do {                                                                                                                 \
-    if (is_nfc()) break;                                                                                               \
-    send_keepalive_during_processing(current_cmd_src == CTAP_SRC_HID ? WAIT_ENTRY_CTAPHID : WAIT_ENTRY_CCID);                                                              \
+    send_keepalive_during_processing(WAIT_ENTRY_CTAPHID);                                                              \
   } while (0)
 
 static const uint8_t aaguid[] = {0x24, 0x4e, 0xb2, 0x9e, 0xe0, 0x90, 0x4e, 0x49,

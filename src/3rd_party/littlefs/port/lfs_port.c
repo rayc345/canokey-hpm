@@ -144,26 +144,26 @@ void littlefs_init(void)
     printf("Remount %02X\n", err);
   }
 
-  lfs_file_t file;
+  // lfs_file_t file;
 
-  // read current count
-  uint32_t boot_count = 0;
-  err = lfs_file_open(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT);
-  printf("Open1 %02X\n", err);
-  err = lfs_file_read(&lfs, &file, &boot_count, sizeof(boot_count));
-  printf("Read1 %02X\n", err);
-  // update boot count
-  boot_count += 1;
-  err = lfs_file_rewind(&lfs, &file);
-  printf("Rewind %02X\n", err);
-  err = lfs_file_write(&lfs, &file, &boot_count, sizeof(boot_count));
-  printf("write2 %02X\n", err);
-  // remember the storage is not updated until the file is closed successfully
-  err = lfs_file_close(&lfs, &file);
-  printf("close %02X\n", err);
-  // release any resources we were using
-  err = lfs_unmount(&lfs);
-  printf("unmount %02X\n", err);
-  // print the boot count
-  printf("boot_count: %d\n", boot_count);
+  // // read current count
+  // uint32_t boot_count = 0;
+  // err = lfs_file_open(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT);
+  // printf("Open1 %02X\n", err);
+  // err = lfs_file_read(&lfs, &file, &boot_count, sizeof(boot_count));
+  // printf("Read1 %02X\n", err);
+  // // update boot count
+  // boot_count += 1;
+  // err = lfs_file_rewind(&lfs, &file);
+  // printf("Rewind %02X\n", err);
+  // err = lfs_file_write(&lfs, &file, &boot_count, sizeof(boot_count));
+  // printf("write2 %02X\n", err);
+  // // remember the storage is not updated until the file is closed successfully
+  // err = lfs_file_close(&lfs, &file);
+  // printf("close %02X\n", err);
+  // // release any resources we were using
+  // err = lfs_unmount(&lfs);
+  // printf("unmount %02X\n", err);
+  // // print the boot count
+  // printf("boot_count: %d\n", boot_count);
 }

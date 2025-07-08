@@ -27,7 +27,7 @@ sdk_app_src(src/3rd_party/tinycbor/cborpretty.c)
 sdk_app_src(src/3rd_party/tinycbor/cborpretty_stdio.c)
 sdk_app_src(src/3rd_party/tinycbor/cbortojson.c)
 sdk_app_src(src/3rd_party/tinycbor/cborvalidation.c)
-sdk_app_src(src/3rd_party/tinycbor/open_memstream.c)
+# sdk_app_src(src/3rd_party/tinycbor/open_memstream.c)
 
 # Canokey-crypto
 sdk_app_inc(src/canokey-crypto/include)
@@ -52,19 +52,29 @@ sdk_app_inc(src/canokey-core/applets/ctap)
 # sdk_app_inc(src/canokey-core/applets/openpgp)
 # sdk_app_inc(src/canokey-core/applets/pass)
 # sdk_app_inc(src/canokey-core/applets/piv)
-sdk_app_inc(src/canokey-core/interfaces/USB/class/ctaphid)
-sdk_app_inc(src/canokey-core/interfaces/USB/device)
 
-sdk_app_src(src/canokey-core/src/apdu.c)
-sdk_app_src(src/canokey-core/src/applets.c)
+sdk_app_src(src/canokey-core/applets/ctap/ctap-parser.c)
+sdk_app_src(src/canokey-core/applets/ctap/ctap.c)
+sdk_app_src(src/canokey-core/applets/ctap/secret.c)
+sdk_app_src(src/canokey-core/applets/ctap/u2f.c)
+
+
+# sdk_app_inc(src/canokey-core/interfaces/USB/class/ctaphid)
+# sdk_app_inc(src/canokey-core/interfaces/USB/device)
+sdk_app_inc(src/canokey-core/interfaces/USB/class/ctaphid)
+sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid_device.c)
+
+sdk_app_inc(src/canokey-core/include)
+# sdk_app_src(src/canokey-core/src/apdu.c)
+# sdk_app_src(src/canokey-core/src/applets.c)
 sdk_app_src(src/canokey-core/src/common.c)
 sdk_app_src(src/canokey-core/src/device.c)
 sdk_app_src(src/canokey-core/src/fs.c)
 sdk_app_src(src/canokey-core/src/key.c)
 sdk_app_src(src/canokey-core/src/pin.c)
 
-sdk_app_src(src/canokey-core/interfaces\NFC\fm.c)
-sdk_app_src(src/canokey-core/interfaces\NFC\nfc.c)
+# sdk_app_src(src/canokey-core/interfaces\NFC\fm.c)
+# sdk_app_src(src/canokey-core/interfaces\NFC\nfc.c)
 
 
 
@@ -79,11 +89,13 @@ sdk_app_src(src/3rd_party/littlefs/port/xpi_util.c)
 # Main
 sdk_app_inc(src)
 sdk_app_src(src/main.c)
+sdk_app_src(src/device2.c)
 
 sdk_compile_options(-fno-inline)
 
 sdk_ses_opt_lib_io_type(RTT)
 
 sdk_compile_definitions(USE_MBEDCRYPTO)
+sdk_compile_definitions(DEBUG_OUTPUT)
 
 generate_ide_projects()

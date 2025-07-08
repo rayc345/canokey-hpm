@@ -10,7 +10,14 @@
 #include "hpm_clock_drv.h"
 #include "xpi_util.h"
 #include "hpm_l1c_drv.h"
+#include "hpm_gpio_drv.h"
 #include "lfs_port.h"
+#include "usb_config.h"
+#include "ctaphid_device.h"
+
+#define LED_FLASH_PERIOD_IN_MS 300
+
+extern void ctaphid_init(uint8_t busid, uint32_t reg_base);
 
 // #define OPTION_LAST_SECTOR_DEMO ('1')
 // #define OPTION_STRESS_TEST ('2')
@@ -21,7 +28,6 @@
 
 // static uint32_t s_write_buf[1024];
 // static uint32_t s_read_buf[1024];
-
 
 // void show_menu(void);
 
@@ -34,8 +40,32 @@
 int main(void)
 {
     board_init();
+    board_init_led_pins();
+    board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
 
+    intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
+    board_timer_create(LED_FLASH_PERIOD_IN_MS, board_led_toggle);
+
+    gpio_set_pin_output(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
+                           BOARD_LED_GPIO_PIN);
+    gpio_write_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
+                        BOARD_LED_GPIO_PIN, board_get_led_gpio_off_level());
     littlefs_init();
+    printf("cherry usb hid_custom in/out device sample.\n");
+
+    ctaphid_init(0, CONFIG_HPM_USBD_BASE);
+
+    //uint32_t tk = device_get_tick();
+
+    //printf("Tick %d\n", tk);
+    //board_delay_ms(100);
+    //tk = device_get_tick();
+    //printf("Tick 2 %d\n", tk);
+
+    while (1)
+    {
+        CTAPHID_Loop(0);
+    }
 
     // show_menu();
 
@@ -331,7 +361,6 @@ int main(void)
 //     xpi_instr_seq_ctx_t write_enable_ctx;
 //     xpi_instr_seq_init(&write_enable_ctx);
 //     xpi_instr_seq_add_cmd_phase(&write_enable_ctx, 0x06, 1, false);
-
 
 //     /************************************************************************************
 //      * Generate the read-status command

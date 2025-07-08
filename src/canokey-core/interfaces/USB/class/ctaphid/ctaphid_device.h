@@ -13,17 +13,23 @@
 #define TYPE_INIT 0x80           // Initial frame identifier
 #define TYPE_CONT 0x00           // Continuation frame identifier
 
-typedef struct {
+typedef enum { CTAPHID_IDLE = 0, CTAPHID_BUSY } CTAPHID_StateTypeDef;
+
+typedef struct
+{
   uint32_t cid; // Channel identifier
-  union {
+  union
+  {
     uint8_t type; // Frame type - b7 defines type
-    struct {
+    struct
+    {
       uint8_t cmd;                    // Command - b7 set
       uint8_t bcnth;                  // Message byte count - high part
       uint8_t bcntl;                  // Message byte count - low part
       uint8_t data[HID_RPT_SIZE - 7]; // Data payload
     } init;
-    struct {
+    struct
+    {
       uint8_t seq;                    // Sequence number - b7 cleared
       uint8_t data[HID_RPT_SIZE - 5]; // Data payload
     } cont;
@@ -60,11 +66,13 @@ typedef struct {
 #define CAPABILITY_CBOR 0x04
 #define CAPABILITY_NMSG 0x08
 
-typedef struct {
+typedef struct
+{
   uint8_t nonce[INIT_NONCE_SIZE]; // Client application nonce
 } CTAPHID_INIT_REQ;
 
-typedef struct {
+typedef struct
+{
   uint8_t nonce[INIT_NONCE_SIZE]; // Client application nonce
   uint32_t cid;                   // Channel identifier
   uint8_t versionInterface;       // Interface version
@@ -95,7 +103,8 @@ typedef struct {
 
 #define MAX_CTAP_BUFSIZE 1300
 
-typedef struct {
+typedef struct
+{
   uint32_t cid;
   uint16_t bcnt_total;
   uint16_t bcnt_current;
@@ -106,9 +115,7 @@ typedef struct {
   alignas(4) uint8_t data[MAX_CTAP_BUFSIZE];
 } CTAPHID_Channel;
 
-typedef struct _USBD_HandleTypeDef USBD_HandleTypeDef;
-
-uint8_t CTAPHID_Init(uint8_t (*send_report)(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len));
+uint8_t CTAPHID_Init(void);
 uint8_t CTAPHID_OutEvent(uint8_t *data);
 void CTAPHID_SendKeepAlive(uint8_t status);
 uint8_t CTAPHID_Loop(uint8_t wait_for_user);
