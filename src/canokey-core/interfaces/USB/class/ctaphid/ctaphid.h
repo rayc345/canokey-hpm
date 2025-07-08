@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
-#ifndef __CTAPHID_H_INCLUDED__
-#define __CTAPHID_H_INCLUDED__
+#ifndef _CTAPHID_H_
+#define _CTAPHID_H_
 
 #include <common.h>
+#include <tusb.h>
 
 #define HID_RPT_SIZE 64 // Default size of raw HID report
 
@@ -13,23 +14,17 @@
 #define TYPE_INIT 0x80           // Initial frame identifier
 #define TYPE_CONT 0x00           // Continuation frame identifier
 
-typedef enum { CTAPHID_IDLE = 0, CTAPHID_BUSY } CTAPHID_StateTypeDef;
-
-typedef struct
-{
+typedef struct {
   uint32_t cid; // Channel identifier
-  union
-  {
+  union {
     uint8_t type; // Frame type - b7 defines type
-    struct
-    {
+    struct {
       uint8_t cmd;                    // Command - b7 set
       uint8_t bcnth;                  // Message byte count - high part
       uint8_t bcntl;                  // Message byte count - low part
       uint8_t data[HID_RPT_SIZE - 7]; // Data payload
     } init;
-    struct
-    {
+    struct {
       uint8_t seq;                    // Sequence number - b7 cleared
       uint8_t data[HID_RPT_SIZE - 5]; // Data payload
     } cont;
@@ -66,13 +61,11 @@ typedef struct
 #define CAPABILITY_CBOR 0x04
 #define CAPABILITY_NMSG 0x08
 
-typedef struct
-{
+typedef struct {
   uint8_t nonce[INIT_NONCE_SIZE]; // Client application nonce
 } CTAPHID_INIT_REQ;
 
-typedef struct
-{
+typedef struct {
   uint8_t nonce[INIT_NONCE_SIZE]; // Client application nonce
   uint32_t cid;                   // Channel identifier
   uint8_t versionInterface;       // Interface version
@@ -103,8 +96,9 @@ typedef struct
 
 #define MAX_CTAP_BUFSIZE 1300
 
-typedef struct
-{
+typedef enum { CTAPHID_IDLE = 0, CTAPHID_BUSY } CTAPHID_StateTypeDef;
+
+typedef struct {
   uint32_t cid;
   uint16_t bcnt_total;
   uint16_t bcnt_current;
@@ -115,9 +109,14 @@ typedef struct
   alignas(4) uint8_t data[MAX_CTAP_BUFSIZE];
 } CTAPHID_Channel;
 
-uint8_t CTAPHID_Init(void);
-uint8_t CTAPHID_OutEvent(uint8_t *data);
 void CTAPHID_SendKeepAlive(uint8_t status);
-uint8_t CTAPHID_Loop(uint8_t wait_for_user);
+void CTAPHID_SendReport(uint8_t *report, uint16_t len);
 
-#endif // __CTAPHID_H_INCLUDED__
+void ctap_hid_init(void (*send_report)(uint8_t *report, uint16_t len));
+uint8_t ctap_hid_loop(uint8_t wait_for_user);
+
+void ctap_hid_report_complete_cb(uint8_t const *report, uint8_t len);
+uint16_t ctap_hid_get_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen);
+void ctap_hid_set_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize);
+
+#endif /* _CTAPHID_H_ */

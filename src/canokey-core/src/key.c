@@ -26,19 +26,19 @@ int ck_encode_public_key(ck_key_t *key, uint8_t *buf, bool include_length) {
     off += PUBLIC_KEY_LENGTH[key->meta.type];
     break;
 
-  // case ED25519:
-  // case X25519:
-  //   if (include_length) {
-  //     buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type] + 2; // tag, length
-  //   }
-  //   buf[off++] = 0x86;
-  //   buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type];
-  //   memcpy(&buf[off], key->ecc.pub, PUBLIC_KEY_LENGTH[key->meta.type]);
-  //   if (key->meta.type == X25519) {
-  //     swap_big_number_endian(&buf[off]); // Public key of x25519 is encoded in little endian
-  //   }
-  //   off += PUBLIC_KEY_LENGTH[key->meta.type];
-  //   break;
+  case ED25519:
+  case X25519:
+    if (include_length) {
+      buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type] + 2; // tag, length
+    }
+    buf[off++] = 0x86;
+    buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type];
+    memcpy(&buf[off], key->ecc.pub, PUBLIC_KEY_LENGTH[key->meta.type]);
+    if (key->meta.type == X25519) {
+      swap_big_number_endian(&buf[off]); // Public key of x25519 is encoded in little endian
+    }
+    off += PUBLIC_KEY_LENGTH[key->meta.type];
+    break;
 
   case RSA2048:
   case RSA3072:
@@ -119,37 +119,37 @@ int ck_parse_piv(ck_key_t *key, const uint8_t *buf, size_t buf_len) {
   case SECP256K1:
   case SECP384R1:
   case SM2:
-  //case ED25519:
-  //case X25519: {
+  case ED25519:
+  case X25519: {
 
-  //  if (buf_len < PRIVATE_KEY_LENGTH[key->meta.type] + 2) {
-  //    DBG_MSG("too short\n");
-  //    return KEY_ERR_LENGTH;
-  //  }
-  //  if (*p != 0x06 && !(key->meta.type == ED25519 && *p == 0x07) && !(key->meta.type == X25519 && *p == 0x08)) {
-  //    DBG_MSG("invalid tag\n");
-  //    return KEY_ERR_DATA;
-  //  }
-  //  p++;
-  //  if (*p++ != PRIVATE_KEY_LENGTH[key->meta.type]) {
-  //    DBG_MSG("invalid private key length\n");
-  //    return KEY_ERR_LENGTH;
-  //  }
-  //  memcpy(key->ecc.pri, p, PRIVATE_KEY_LENGTH[key->meta.type]);
-  //  if (key->meta.type == X25519) {
-  //    swap_big_number_endian(key->ecc.pri); // Private key of x25519 is encoded in little endian
-  //  }
-  //  if (!ecc_verify_private_key(key->meta.type, &key->ecc)) {
-  //    memzero(key, sizeof(ck_key_t));
-  //    return KEY_ERR_DATA;
-  //  }
-  //  if (ecc_complete_key(key->meta.type, &key->ecc) < 0) {
-  //    memzero(key, sizeof(ck_key_t));
-  //    return KEY_ERR_PROC;
-  //  }
-  //  p += PRIVATE_KEY_LENGTH[key->meta.type];
-  //  break;
-  //}
+    if (buf_len < PRIVATE_KEY_LENGTH[key->meta.type] + 2) {
+      DBG_MSG("too short\n");
+      return KEY_ERR_LENGTH;
+    }
+    if (*p != 0x06 && !(key->meta.type == ED25519 && *p == 0x07) && !(key->meta.type == X25519 && *p == 0x08)) {
+      DBG_MSG("invalid tag\n");
+      return KEY_ERR_DATA;
+    }
+    p++;
+    if (*p++ != PRIVATE_KEY_LENGTH[key->meta.type]) {
+      DBG_MSG("invalid private key length\n");
+      return KEY_ERR_LENGTH;
+    }
+    memcpy(key->ecc.pri, p, PRIVATE_KEY_LENGTH[key->meta.type]);
+    if (key->meta.type == X25519) {
+      swap_big_number_endian(key->ecc.pri); // Private key of x25519 is encoded in little endian
+    }
+    if (!ecc_verify_private_key(key->meta.type, &key->ecc)) {
+      memzero(key, sizeof(ck_key_t));
+      return KEY_ERR_DATA;
+    }
+    if (ecc_complete_key(key->meta.type, &key->ecc) < 0) {
+      memzero(key, sizeof(ck_key_t));
+      return KEY_ERR_PROC;
+    }
+    p += PRIVATE_KEY_LENGTH[key->meta.type];
+    break;
+  }
 
   case RSA2048:
   case RSA3072:
@@ -227,47 +227,47 @@ int ck_parse_openpgp(ck_key_t *key, const uint8_t *buf, size_t buf_len) {
   case SECP256K1:
   case SECP384R1:
   case SM2:
-  //case ED25519:
-  //case X25519: {
-  //  if ((size_t)(p + 1 - buf) >= buf_len) return KEY_ERR_LENGTH;
-  //  if (*p++ != 0x92) return KEY_ERR_DATA;
-  //  const size_t data_pri_key_len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);
-  //  if (fail) return KEY_ERR_LENGTH;
-  //  if (data_pri_key_len > PRIVATE_KEY_LENGTH[key->meta.type]) return KEY_ERR_DATA;
-  //  p += length_size;
+  case ED25519:
+  case X25519: {
+    if ((size_t)(p + 1 - buf) >= buf_len) return KEY_ERR_LENGTH;
+    if (*p++ != 0x92) return KEY_ERR_DATA;
+    const size_t data_pri_key_len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);
+    if (fail) return KEY_ERR_LENGTH;
+    if (data_pri_key_len > PRIVATE_KEY_LENGTH[key->meta.type]) return KEY_ERR_DATA;
+    p += length_size;
 
-  //  size_t data_pub_key_len = 0; // this is optional
-  //  if (p < data_tag) {
-  //    if ((size_t)(p + 1 - buf) >= buf_len) return KEY_ERR_LENGTH;
-  //    if (*p++ == 0x99) {
-  //      data_pub_key_len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);
-  //      if (fail) return KEY_ERR_LENGTH;
-  //      if (data_pub_key_len > PUBLIC_KEY_LENGTH[key->meta.type] + 1) return KEY_ERR_DATA;
-  //    }
-  //  }
+    size_t data_pub_key_len = 0; // this is optional
+    if (p < data_tag) {
+      if ((size_t)(p + 1 - buf) >= buf_len) return KEY_ERR_LENGTH;
+      if (*p++ == 0x99) {
+        data_pub_key_len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);
+        if (fail) return KEY_ERR_LENGTH;
+        if (data_pub_key_len > PUBLIC_KEY_LENGTH[key->meta.type] + 1) return KEY_ERR_DATA;
+      }
+    }
 
-  //  // Concatenation of key data
-  //  p = data_tag;
-  //  if ((size_t)(p + 2 - buf) >= buf_len) return KEY_ERR_LENGTH;
-  //  if (*p++ != 0x5F || *p++ != 0x48) return KEY_ERR_DATA;
-  //  len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);
-  //  if (fail || len != data_pri_key_len + data_pub_key_len) return KEY_ERR_DATA;
-  //  p += length_size;
-  //  const int n_leading_zeros = PRIVATE_KEY_LENGTH[key->meta.type] - data_pri_key_len;
-  //  if ((size_t)(p + data_pri_key_len - buf) > buf_len) return KEY_ERR_LENGTH;
-  //  memcpy(key->ecc.pri + n_leading_zeros, p, data_pri_key_len);
+    // Concatenation of key data
+    p = data_tag;
+    if ((size_t)(p + 2 - buf) >= buf_len) return KEY_ERR_LENGTH;
+    if (*p++ != 0x5F || *p++ != 0x48) return KEY_ERR_DATA;
+    len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);
+    if (fail || len != data_pri_key_len + data_pub_key_len) return KEY_ERR_DATA;
+    p += length_size;
+    const int n_leading_zeros = PRIVATE_KEY_LENGTH[key->meta.type] - data_pri_key_len;
+    if ((size_t)(p + data_pri_key_len - buf) > buf_len) return KEY_ERR_LENGTH;
+    memcpy(key->ecc.pri + n_leading_zeros, p, data_pri_key_len);
 
-  //  if (!ecc_verify_private_key(key->meta.type, &key->ecc)) {
-  //    memzero(key, sizeof(ck_key_t));
-  //    return KEY_ERR_DATA;
-  //  }
-  //  if (ecc_complete_key(key->meta.type, &key->ecc) < 0) {
-  //    memzero(key, sizeof(ck_key_t));
-  //    return KEY_ERR_PROC;
-  //  }
+    if (!ecc_verify_private_key(key->meta.type, &key->ecc)) {
+      memzero(key, sizeof(ck_key_t));
+      return KEY_ERR_DATA;
+    }
+    if (ecc_complete_key(key->meta.type, &key->ecc) < 0) {
+      memzero(key, sizeof(ck_key_t));
+      return KEY_ERR_PROC;
+    }
 
-  //  return 0;
-  //}
+    return 0;
+  }
 
   case RSA2048:
   case RSA3072:

@@ -2,15 +2,12 @@
 #ifndef FIDO_INTERNAL_H_
 #define FIDO_INTERNAL_H_
 
-// #include <apdu.h>
+#include <apdu.h>
 #include <cbor.h>
 #include <common.h>
-#include <apdu.h>
-//#include <ctaphid.h>
+#include <ctaphid.h>
 #include <ecc.h>
 #include <sha.h>
-
-#define MAX_CTAP_BUFSIZE 1300
 
 #define FIRMWARE_VERSION 201
 

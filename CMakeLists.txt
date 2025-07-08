@@ -6,13 +6,17 @@ cmake_minimum_required(VERSION 3.13)
 set(CONFIG_MBEDTLS 1)
 # set(CONFIG_MBEDTLS_USE_HPM_SDP 1)
 
-set(CONFIG_CHERRYUSB 1)
+# set(CONFIG_CHERRYUSB 1)
+set(CONFIG_TINYUSB 1)
 set(CONFIG_USB_DEVICE 1)
 set(CONFIG_USB_DEVICE_HID 1)
 
 find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
 project(Canokey-hpm)
+
+sdk_compile_definitions(-DCFG_TUSB_MCU=OPT_MCU_HPM)
+sdk_compile_definitions(-DUSB_HOST_MCU_CORE=HPM_CORE0)
 
 # tinycbor
 sdk_app_inc(src/3rd_party/tinycbor)
@@ -45,13 +49,13 @@ sdk_app_src(src/canokey-crypto/src/sha3.c)
 sdk_app_src(src/canokey-crypto/src/sm3.c)
 
 # Canokey-core
-# sdk_app_inc(src/canokey-core/applets/admin)
+sdk_app_inc(src/canokey-core/applets/admin)
 sdk_app_inc(src/canokey-core/applets/ctap)
-# sdk_app_inc(src/canokey-core/applets/ndef)
-# sdk_app_inc(src/canokey-core/applets/oath)
-# sdk_app_inc(src/canokey-core/applets/openpgp)
-# sdk_app_inc(src/canokey-core/applets/pass)
-# sdk_app_inc(src/canokey-core/applets/piv)
+sdk_app_inc(src/canokey-core/applets/ndef)
+sdk_app_inc(src/canokey-core/applets/oath)
+sdk_app_inc(src/canokey-core/applets/openpgp)
+sdk_app_inc(src/canokey-core/applets/pass)
+sdk_app_inc(src/canokey-core/applets/piv)
 
 sdk_app_src(src/canokey-core/applets/ctap/ctap-parser.c)
 sdk_app_src(src/canokey-core/applets/ctap/ctap.c)
@@ -59,10 +63,23 @@ sdk_app_src(src/canokey-core/applets/ctap/secret.c)
 sdk_app_src(src/canokey-core/applets/ctap/u2f.c)
 
 
-# sdk_app_inc(src/canokey-core/interfaces/USB/class/ctaphid)
-# sdk_app_inc(src/canokey-core/interfaces/USB/device)
+sdk_app_inc(src/canokey-core/interfaces/USB/class/ccid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/ctaphid)
-sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid_device.c)
+sdk_app_inc(src/canokey-core/interfaces/USB/class/hid)
+sdk_app_inc(src/canokey-core/interfaces/USB/class/kbdhid)
+sdk_app_inc(src/canokey-core/interfaces/USB/class/webusb)
+sdk_app_inc(src/canokey-core/interfaces/USB/device)
+
+
+sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid_device.c)
+sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid.c)
+sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid.c)
+sdk_app_src(src/canokey-core/interfaces/USB/class/hid/hid.c)
+sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/kbdhid.c)
+sdk_app_src(src/canokey-core/interfaces/USB/class/webusb/webusb.c)
+
+sdk_app_src(src/canokey-core/interfaces/USB/device/usb_descriptors.c)
+sdk_app_src(src/canokey-core/interfaces/USB/device/usb_device.c)
 
 sdk_app_inc(src/canokey-core/include)
 # sdk_app_src(src/canokey-core/src/apdu.c)
