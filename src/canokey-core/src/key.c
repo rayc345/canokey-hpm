@@ -2,7 +2,7 @@
 #include "ecc.h"
 #include "memzero.h"
 #include <common.h>
-#include <include/key.h>
+#include <key.h>
 
 #define KEY_META_ATTR 0xFF
 #define CEIL_DIV_SQRT2 0xB504F334

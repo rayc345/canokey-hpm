@@ -1,49 +1,39 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <tusb.h>
-
-#include <apdu.h>
 #include <ctap.h>
 #include <ctaphid.h>
 #include <device.h>
 #include <rand.h>
-#include <usb_descriptors.h>
+#include <usb_device.h>
+#include <usbd_ctaphid.h>
 
 static CTAPHID_FRAME frame;
 static CTAPHID_Channel channel;
 static volatile uint8_t has_frame;
 static CAPDU apdu_cmd;
 static RAPDU apdu_resp;
-static CTAPHID_StateTypeDef hid_state;
-static void (*callback_send_report)(uint8_t *report, uint16_t len);
+static uint8_t (*callback_send_report)(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len);
 
 const uint16_t ISIZE = sizeof(frame.init.data);
 const uint16_t CSIZE = sizeof(frame.cont.data);
 
-//==============================================================================
-// CTAPHID functions
-//==============================================================================
-void CTAPHID_SendReport(uint8_t *report, uint16_t len) {
-  if (!tud_mounted()) return;
+uint8_t CTAPHID_Init(uint8_t (*send_report)(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len)) {
+  callback_send_report = send_report;
+  channel.state = CTAPHID_IDLE;
+  has_frame = 0;
+  return 0;
+}
 
-  int retry = 0;
-  while (hid_state != CTAPHID_IDLE) {
-    if (++retry > 50) {
-      ERR_MSG("Wait HID ready timeout\n");
-      return;
-    }
-
-    tud_task_ext(0, false);
-    device_delay(1);
+uint8_t CTAPHID_OutEvent(uint8_t *data) {
+  if (has_frame) {
+    ERR_MSG("overrun\n");
+    return 0;
   }
-
-  hid_state = CTAPHID_BUSY;
-  // Report ID is always 0
-  tud_hid_n_report(HID_ITF_CTAP, 0, (const void *)report, len);
+  memcpy(&frame, data, sizeof(frame));
+  has_frame = 1;
+  return 0;
 }
 
-static void CTAPHID_SendFrame(void) {
-  callback_send_report((uint8_t *)&frame, sizeof(CTAPHID_FRAME));
-}
+static void CTAPHID_SendFrame(void) { callback_send_report(&usb_device, (uint8_t *)&frame, sizeof(CTAPHID_FRAME)); }
 
 static void CTAPHID_SendResponse(uint32_t cid, uint8_t cmd, uint8_t *data, uint16_t len) {
   uint16_t off = 0;
@@ -71,17 +61,6 @@ static void CTAPHID_SendResponse(uint32_t cid, uint8_t cmd, uint8_t *data, uint1
     CTAPHID_SendFrame();
     off += copied;
   }
-}
-
-void CTAPHID_SendKeepAlive(uint8_t status) {
-  memset(&frame, 0, sizeof(frame));
-  frame.cid = channel.cid;
-  frame.type = TYPE_INIT;
-  frame.init.cmd |= CTAPHID_KEEPALIVE;
-  frame.init.bcnth = 0;
-  frame.init.bcntl = 1;
-  frame.init.data[0] = status;
-  CTAPHID_SendFrame();
 }
 
 static void CTAPHID_SendErrorResponse(uint32_t cid, uint8_t code) {
@@ -142,17 +121,7 @@ static void CTAPHID_Execute_Cbor(void) {
   CTAPHID_SendResponse(channel.cid, CTAPHID_CBOR, channel.data, len);
 }
 
-//==============================================================================
-// Class init and loop
-//==============================================================================
-void ctap_hid_init(void (*send_report)(uint8_t *report, uint16_t len)) {
-  callback_send_report = send_report;
-  channel.state = CTAPHID_IDLE;
-  hid_state = CTAPHID_IDLE;
-  has_frame = 0;
-}
-
-uint8_t ctap_hid_loop(uint8_t wait_for_user) {
+uint8_t CTAPHID_Loop(uint8_t wait_for_user) {
   uint8_t ret = LOOP_SUCCESS;
   if (channel.state == CTAPHID_BUSY && device_get_tick() > channel.expire) {
     DBG_MSG("CTAP Timeout\n");
@@ -194,10 +163,8 @@ uint8_t ctap_hid_loop(uint8_t wait_for_user) {
     channel.seq = 0;
     memcpy(channel.data, frame.init.data, copied);
     channel.expire = device_get_tick() + CTAPHID_TRANS_TIMEOUT;
-  // if (FRAME_TYPE(frame) == TYPE_CONT)
   } else {
     // DBG_MSG("CTAP cont frame, state=%d cmd=0x%x seq=%d\n", (int)channel.state, (int)channel.cmd, (int)FRAME_SEQ(frame));
-    // (int)FRAME_SEQ(frame));
     if (channel.state == CTAPHID_IDLE) goto consume_frame; // ignore spurious continuation packet
     if (FRAME_SEQ(frame) != channel.seq++) {
       DBG_MSG("seq=%d\n", (int)FRAME_SEQ(frame));
@@ -269,31 +236,13 @@ consume_frame:
   return ret;
 }
 
-//==============================================================================
-// TinyUSB stack callbacks
-//==============================================================================
-void ctap_hid_report_complete_cb(uint8_t const *report, uint8_t len) { hid_state = CTAPHID_IDLE; }
-
-uint16_t ctap_hid_get_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen) {
-  return 0;
-}
-
-void ctap_hid_set_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize) {
-  // report_id = 0 for OUTPUT data
-  if (report_id != 0) return;
-
-  // HID_REPORT_TYPE_INVALID means received generic OUTPUT data
-  if (report_type != HID_REPORT_TYPE_INVALID) return;
-
-  if (has_frame) {
-    ERR_MSG("overrun\n");
-    return;
-  }
-  if (bufsize < sizeof(frame)) {
-    ERR_MSG("CTAPHID: invalid frame size %d, need %d\n", bufsize, sizeof(frame));
-    return;
-  }
-
-  memcpy(&frame, buffer, sizeof(frame));
-  has_frame = 1;
+void CTAPHID_SendKeepAlive(uint8_t status) {
+  memset(&frame, 0, sizeof(frame));
+  frame.cid = channel.cid;
+  frame.type = TYPE_INIT;
+  frame.init.cmd |= CTAPHID_KEEPALIVE;
+  frame.init.bcnth = 0;
+  frame.init.bcntl = 1;
+  frame.init.data[0] = status;
+  CTAPHID_SendFrame();
 }

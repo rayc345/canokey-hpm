@@ -96,9 +96,8 @@ bool testmode_err_triggered(const char* filename, bool file_wr);
 // platform independent functions
 uint8_t wait_for_user_presence(uint8_t entry);
 int strong_user_presence_test(void);
-void device_mounted(void);
 int send_keepalive_during_processing(uint8_t entry);
-void device_loop(uint8_t has_touch);
+void device_loop(void);
 uint8_t is_nfc(void);
 void set_nfc_state(uint8_t state);
 uint8_t get_touch_result(void);
