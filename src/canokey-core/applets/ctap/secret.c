@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "cose-key.h"
 #include "secret.h"
-#include <caes.h>
+#include <aes.h>
 #include <block-cipher.h>
 #include <crypto-util.h>
 #include <ecc.h>
@@ -213,8 +213,8 @@ key_type_t cose_alg_to_key_type(int alg) {
   switch (alg) {
   case COSE_ALG_ES256:
     return SECP256R1;
-  // case COSE_ALG_EDDSA:
-  //   return ED25519;
+  case COSE_ALG_EDDSA:
+    return ED25519;
   default:
     if (ctap_sm2_attr.enabled && alg == ctap_sm2_attr.algo_id) return SM2;
     return KEY_TYPE_PKC_END;
@@ -349,17 +349,17 @@ int sign_with_private_key(int32_t alg_type, ecc_key_t *key, const uint8_t *input
     return -1;
   }
 
-  // if (key_type == ED25519) {
-  //   if (ecc_complete_key(key_type, key) < 0) {
-  //     ERR_MSG("Failed to complete key\n");
-  //     return -1;
-  //   }
-  //   if (ecc_sign(key_type, key, input, len, sig) < 0) {
-  //     ERR_MSG("Failed to sign\n");
-  //     return -1;
-  //   }
-  //   return SIGNATURE_LENGTH[key_type];
-  // }
+  if (key_type == ED25519) {
+    if (ecc_complete_key(key_type, key) < 0) {
+      ERR_MSG("Failed to complete key\n");
+      return -1;
+    }
+    if (ecc_sign(key_type, key, input, len, sig) < 0) {
+      ERR_MSG("Failed to sign\n");
+      return -1;
+    }
+    return SIGNATURE_LENGTH[key_type];
+  }
   if (key_type == SM2) {
     if (ecc_complete_key(key_type, key) < 0) {  // Compute Z requiring the public key
       ERR_MSG("Failed to complete key\n");

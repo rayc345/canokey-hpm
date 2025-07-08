@@ -24,10 +24,10 @@
 
 typedef struct {
   uint8_t enabled;
-  // uint8_t ed25519;
+  uint8_t ed25519;
   uint8_t rsa3072;
   uint8_t rsa4096;
-  // uint8_t x25519;
+  uint8_t x25519;
   uint8_t secp256k1;
   uint8_t sm2;
 } __packed piv_algorithm_extension_config_t;

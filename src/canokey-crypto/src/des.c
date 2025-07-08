@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <cdes.h>
+#include <des.h>
 #ifdef USE_MBEDCRYPTO
 #include <mbedtls/des.h>
 #endif

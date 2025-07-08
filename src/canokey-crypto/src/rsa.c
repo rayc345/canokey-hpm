@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <rand.h>
-#include <crsa.h>
+#include <rsa.h>
 #include <string.h>
 
 #ifdef USE_MBEDCRYPTO
