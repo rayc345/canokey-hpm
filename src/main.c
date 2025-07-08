@@ -23,7 +23,7 @@
 /*---------------------------------------------------------------------*
  * Macro Const Declaration
  *---------------------------------------------------------------------*/
-#define USB_APP_DELAY_INTERVAL (1U)  /* 1 ms */
+#define USB_APP_DELAY_INTERVAL (1U) /* 1 ms */
 
 #define LED_FLASH_PERIOD_IN_MS 300
 
@@ -67,15 +67,18 @@ int main(void)
             ;
         }
     }
+    littlefs_init();
 
     printf("USB%d Device - HID Generic Inout Demo\r\n", BOARD_DEVICE_RHPORT_NUM);
+    applets_install();
+    init_apdu_buffer();
 
     tusb_init();
 
     while (1)
     {
-        tud_task(); /* tinyusb device task */
-        //led_blinking_task();
+        device_loop(1); /* tinyusb device task */
+        // led_blinking_task();
     }
 
     return 0;

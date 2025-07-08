@@ -7,6 +7,7 @@
 #include "xpi_util.h"
 #include "lfs.h"
 #include "lfs_util.h"
+#include "fs.h"
 
 static xpi_nor_config_t s_xpi_nor_config;
 
@@ -20,7 +21,7 @@ static uint32_t base_address;
 
 XPI_Type *base = BOARD_APP_XPI_NOR_XPI_BASE;
 
-static lfs_t lfs;
+// static lfs_t lfs;
 static struct lfs_config config;
 
 #define LFS_CACHE_SIZE 512
@@ -131,16 +132,16 @@ void littlefs_init(void)
   config.lookahead_buffer = lookahead_buffer;
 
   // mount the filesystem
-  int err = lfs_mount(&lfs, &config);
+  int err = fs_mount(&config);
 
   // reformat if we can't mount the filesystem
   // this should only happen on the first boot
   if (err)
   {
     printf("Mount Failed, formatting\n");
-    err = lfs_format(&lfs, &config);
+    err = fs_format(&config);
     printf("Formatting %02X\n", err);
-    err = lfs_mount(&lfs, &config);
+    err = fs_mount(&config);
     printf("Remount %02X\n", err);
   }
 

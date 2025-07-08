@@ -8,7 +8,7 @@
 #include <openpgp.h>
 #include <pin.h>
 #include <rand.h>
-#include <rsa.h>
+#include <crsa.h>
 
 #define DATA_PATH "pgp-data" // Content: URL
 #define SIG_KEY_PATH "pgp-sigk"

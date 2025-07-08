@@ -2,7 +2,7 @@
 #include <admin.h>
 #include <common.h>
 #include <crypto-util.h>
-#include <des.h>
+#include <cdes.h>
 #include <device.h>
 #include <ecc.h>
 #include <ckey.h>
@@ -10,7 +10,7 @@
 #include <pin.h>
 #include <piv.h>
 #include <rand.h>
-#include <rsa.h>
+#include <crsa.h>
 
 // data object path
 #define MAX_DO_PATH_LEN             9

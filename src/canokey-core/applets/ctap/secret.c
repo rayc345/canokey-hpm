@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "cose-key.h"
 #include "secret.h"
-#include <aes.h>
+#include <caes.h>
 #include <block-cipher.h>
 #include <crypto-util.h>
 #include <ecc.h>

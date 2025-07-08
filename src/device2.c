@@ -42,6 +42,12 @@ void device_delay(int ms)
   board_delay_ms(ms);
 }
 
+
+void device_set_timeout(void (*callback)(void), uint16_t timeout)
+{
+  board_timer_create(timeout, callback);
+}
+
 void led_on(void)
 {
   gpio_write_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
