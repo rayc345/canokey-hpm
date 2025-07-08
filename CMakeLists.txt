@@ -10,6 +10,7 @@ set(CONFIG_MBEDTLS 1)
 set(CONFIG_TINYUSB 1)
 set(CONFIG_USB_DEVICE 1)
 set(CONFIG_USB_DEVICE_HID 1)
+set(CONFIG_USB_DEVICE_VENDOR 1)
 
 find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
@@ -57,10 +58,18 @@ sdk_app_inc(src/canokey-core/applets/openpgp)
 sdk_app_inc(src/canokey-core/applets/pass)
 sdk_app_inc(src/canokey-core/applets/piv)
 
+
+sdk_app_src(src/canokey-core/applets/admin/admin.c)
 sdk_app_src(src/canokey-core/applets/ctap/ctap-parser.c)
 sdk_app_src(src/canokey-core/applets/ctap/ctap.c)
 sdk_app_src(src/canokey-core/applets/ctap/secret.c)
 sdk_app_src(src/canokey-core/applets/ctap/u2f.c)
+sdk_app_src(src/canokey-core/applets/ndef/ndef.c)
+sdk_app_src(src/canokey-core/applets/oath/oath.c)
+sdk_app_src(src/canokey-core/applets/openpgp/openpgp.c)
+sdk_app_src(src/canokey-core/applets/openpgp/key.c)
+sdk_app_src(src/canokey-core/applets/pass/pass.c)
+sdk_app_src(src/canokey-core/applets/piv/piv.c)
 
 
 sdk_app_inc(src/canokey-core/interfaces/USB/class/ccid)
@@ -69,6 +78,7 @@ sdk_app_inc(src/canokey-core/interfaces/USB/class/hid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/kbdhid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/webusb)
 sdk_app_inc(src/canokey-core/interfaces/USB/device)
+sdk_app_inc(src/canokey-core/interfaces/USB/drv)
 
 
 sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid_device.c)
@@ -81,13 +91,15 @@ sdk_app_src(src/canokey-core/interfaces/USB/class/webusb/webusb.c)
 sdk_app_src(src/canokey-core/interfaces/USB/device/usb_descriptors.c)
 sdk_app_src(src/canokey-core/interfaces/USB/device/usb_device.c)
 
+sdk_app_src(src/canokey-core/interfaces/USB/drv/vendor_device.c)
+
 sdk_app_inc(src/canokey-core/include)
-# sdk_app_src(src/canokey-core/src/apdu.c)
-# sdk_app_src(src/canokey-core/src/applets.c)
+sdk_app_src(src/canokey-core/src/apdu.c)
+sdk_app_src(src/canokey-core/src/applets.c)
 sdk_app_src(src/canokey-core/src/common.c)
 sdk_app_src(src/canokey-core/src/device.c)
 sdk_app_src(src/canokey-core/src/fs.c)
-sdk_app_src(src/canokey-core/src/key.c)
+sdk_app_src(src/canokey-core/src/ckey.c)
 sdk_app_src(src/canokey-core/src/pin.c)
 
 # sdk_app_src(src/canokey-core/interfaces\NFC\fm.c)
@@ -107,6 +119,7 @@ sdk_app_src(src/3rd_party/littlefs/port/xpi_util.c)
 sdk_app_inc(src)
 sdk_app_src(src/main.c)
 sdk_app_src(src/device2.c)
+sdk_app_src(src/usb.c)
 
 sdk_compile_options(-fno-inline)
 

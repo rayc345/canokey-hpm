@@ -12,12 +12,20 @@
 #include "hpm_l1c_drv.h"
 #include "hpm_gpio_drv.h"
 #include "lfs_port.h"
-#include "usb_config.h"
-#include "ctaphid_device.h"
+#include "tusb.h"
+#include <apdu.h>
+#include <applets.h>
+#include <ccid.h>
+#include <device.h>
+// #include "usb_config.h"
+// #include "ctaphid_device.h"
+
+/*---------------------------------------------------------------------*
+ * Macro Const Declaration
+ *---------------------------------------------------------------------*/
+#define USB_APP_DELAY_INTERVAL (1U)  /* 1 ms */
 
 #define LED_FLASH_PERIOD_IN_MS 300
-
-extern void ctaphid_init(uint8_t busid, uint32_t reg_base);
 
 // #define OPTION_LAST_SECTOR_DEMO ('1')
 // #define OPTION_STRESS_TEST ('2')
@@ -41,31 +49,65 @@ int main(void)
 {
     board_init();
     board_init_led_pins();
-    board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
+    if (BOARD_DEVICE_RHPORT_NUM == 0)
+    {
+        board_init_usb(HPM_USB0);
+#ifdef HPM_USB1
+    }
+    else if (BOARD_DEVICE_RHPORT_NUM == 1)
+    {
+        board_init_usb(HPM_USB1);
+#endif
+    }
+    else
+    {
+        printf("Don't support HPM_USB%d!\n", BOARD_DEVICE_RHPORT_NUM);
+        while (1)
+        {
+            ;
+        }
+    }
 
-    intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
-    board_timer_create(LED_FLASH_PERIOD_IN_MS, board_led_toggle);
+    printf("USB%d Device - HID Generic Inout Demo\r\n", BOARD_DEVICE_RHPORT_NUM);
 
-    gpio_set_pin_output(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
-                           BOARD_LED_GPIO_PIN);
-    gpio_write_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
-                        BOARD_LED_GPIO_PIN, board_get_led_gpio_off_level());
-    littlefs_init();
-    printf("cherry usb hid_custom in/out device sample.\n");
-
-    ctaphid_init(0, CONFIG_HPM_USBD_BASE);
-
-    //uint32_t tk = device_get_tick();
-
-    //printf("Tick %d\n", tk);
-    //board_delay_ms(100);
-    //tk = device_get_tick();
-    //printf("Tick 2 %d\n", tk);
+    tusb_init();
 
     while (1)
     {
-        CTAPHID_Loop(0);
+        tud_task(); /* tinyusb device task */
+        //led_blinking_task();
     }
+
+    return 0;
+
+    // ///////////
+    // board_init();
+    // board_init_led_pins();
+    // board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
+
+    // intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
+    // board_timer_create(LED_FLASH_PERIOD_IN_MS, board_led_toggle);
+
+    // gpio_set_pin_output(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
+    //                     BOARD_LED_GPIO_PIN);
+    // gpio_write_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,
+    //                BOARD_LED_GPIO_PIN, board_get_led_gpio_off_level());
+    // littlefs_init();
+    // printf("cherry usb hid_custom in/out device sample.\n");
+
+    // ctaphid_init(0, CONFIG_HPM_USBD_BASE);
+
+    // // uint32_t tk = device_get_tick();
+
+    // // printf("Tick %d\n", tk);
+    // // board_delay_ms(100);
+    // // tk = device_get_tick();
+    // // printf("Tick 2 %d\n", tk);
+
+    // while (1)
+    // {
+    //     CTAPHID_Loop(0);
+    // }
 
     // show_menu();
 

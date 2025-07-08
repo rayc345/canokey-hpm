@@ -158,36 +158,36 @@ static int build_ecdsa_cose_key(uint8_t *data, int algo, int curve) {
   return len;
 }
 
-static int build_ed25519_cose_key(uint8_t *data) {
-  uint8_t buf[50];
-  CborEncoder encoder, map_encoder;
+// static int build_ed25519_cose_key(uint8_t *data) {
+//   uint8_t buf[50];
+//   CborEncoder encoder, map_encoder;
 
-  cbor_encoder_init(&encoder, buf, sizeof(buf), 0);
-  CborError ret = cbor_encoder_create_map(&encoder, &map_encoder, 4);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_KTY);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_KTY_OKP);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_ALG);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_ALG_EDDSA);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_CRV);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_CRV_ED25519);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_X);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_byte_string(&map_encoder, data, 32);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_close_container(&encoder, &map_encoder);
-  CHECK_CBOR_RET(ret);
+//   cbor_encoder_init(&encoder, buf, sizeof(buf), 0);
+//   CborError ret = cbor_encoder_create_map(&encoder, &map_encoder, 4);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_KTY);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_KEY_KTY_OKP);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_ALG);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_ALG_EDDSA);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_CRV);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_KEY_CRV_ED25519);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_X);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encode_byte_string(&map_encoder, data, 32);
+//   CHECK_CBOR_RET(ret);
+//   ret = cbor_encoder_close_container(&encoder, &map_encoder);
+//   CHECK_CBOR_RET(ret);
 
-  const int len = cbor_encoder_get_buffer_size(&encoder, buf);
-  memcpy(data, buf, len);
-  return len;
-}
+//   const int len = cbor_encoder_get_buffer_size(&encoder, buf);
+//   memcpy(data, buf, len);
+//   return len;
+// }
 
 int ctap_consistency_check(void) {
   CTAP_dc_general_attr attr;
@@ -285,8 +285,8 @@ uint8_t ctap_make_auth_data(uint8_t *rp_id_hash, uint8_t *buf, uint8_t flags, co
     int cose_key_size;
     if (alg_type == COSE_ALG_ES256) {
       cose_key_size = build_ecdsa_cose_key(ad->at.public_key, COSE_ALG_ES256, COSE_KEY_CRV_P256);
-    } else if (alg_type == COSE_ALG_EDDSA) {
-      cose_key_size = build_ed25519_cose_key(ad->at.public_key);
+    // } else if (alg_type == COSE_ALG_EDDSA) {
+    //   cose_key_size = build_ed25519_cose_key(ad->at.public_key);
     } else if (alg_type == ctap_sm2_attr.algo_id) {
       cose_key_size = build_ecdsa_cose_key(ad->at.public_key, ctap_sm2_attr.algo_id, ctap_sm2_attr.curve_id);
     } else {
@@ -1353,7 +1353,7 @@ static uint8_t ctap_get_info(CborEncoder *encoder) {
   // algorithms
   ret = cbor_encode_int(&map, GI_RESP_ALGORITHMS);
   CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_create_array(&map, &array, ctap_sm2_attr.enabled ? 3 : 2);
+  ret = cbor_encoder_create_array(&map, &array, ctap_sm2_attr.enabled ? 2 : 1);
   CHECK_CBOR_RET(ret);
   ret = cbor_encoder_create_map(&array, &sub_map, 2);
   CHECK_CBOR_RET(ret);
@@ -1367,20 +1367,20 @@ static uint8_t ctap_get_info(CborEncoder *encoder) {
     ret = cbor_encode_text_stringz(&sub_map, "public-key");
     CHECK_CBOR_RET(ret);
   }
-  ret = cbor_encoder_close_container(&array, &sub_map);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_create_map(&array, &sub_map, 2);
-  CHECK_CBOR_RET(ret);
-  {
-    ret = cbor_encode_text_stringz(&sub_map, "alg");
-    CHECK_CBOR_RET(ret);
-    ret = cbor_encode_int(&sub_map, COSE_ALG_EDDSA);
-    CHECK_CBOR_RET(ret);
-    ret = cbor_encode_text_stringz(&sub_map, "type");
-    CHECK_CBOR_RET(ret);
-    ret = cbor_encode_text_stringz(&sub_map, "public-key");
-    CHECK_CBOR_RET(ret);
-  }
+  // ret = cbor_encoder_close_container(&array, &sub_map);
+  // CHECK_CBOR_RET(ret);
+  // ret = cbor_encoder_create_map(&array, &sub_map, 2);
+  // CHECK_CBOR_RET(ret);
+  // {
+  //   ret = cbor_encode_text_stringz(&sub_map, "alg");
+  //   CHECK_CBOR_RET(ret);
+  //   ret = cbor_encode_int(&sub_map, COSE_ALG_EDDSA);
+  //   CHECK_CBOR_RET(ret);
+  //   ret = cbor_encode_text_stringz(&sub_map, "type");
+  //   CHECK_CBOR_RET(ret);
+  //   ret = cbor_encode_text_stringz(&sub_map, "public-key");
+  //   CHECK_CBOR_RET(ret);
+  // }
   ret = cbor_encoder_close_container(&array, &sub_map);
   CHECK_CBOR_RET(ret);
   if (ctap_sm2_attr.enabled) {
@@ -1854,9 +1854,9 @@ static uint8_t ctap_credential_management(CborEncoder *encoder, const uint8_t *p
       if (dc.credential_id.alg_type == COSE_ALG_ES256) {
         int cose_key_size = build_ecdsa_cose_key(ptr, COSE_ALG_ES256, COSE_KEY_CRV_P256);
         sub_map.data.ptr = ptr + cose_key_size;
-      } else if (dc.credential_id.alg_type == COSE_ALG_EDDSA) {
-        int cose_key_size = build_ed25519_cose_key(ptr);
-        sub_map.data.ptr = ptr + cose_key_size;
+      // } else if (dc.credential_id.alg_type == COSE_ALG_EDDSA) {
+      //   int cose_key_size = build_ed25519_cose_key(ptr);
+      //   sub_map.data.ptr = ptr + cose_key_size;
       }
       ret = cbor_encoder_close_container(&map, &sub_map);
       CHECK_CBOR_RET(ret);

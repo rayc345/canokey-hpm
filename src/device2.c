@@ -37,6 +37,11 @@ static bool GPIO_Touched(void)
   }
 }
 
+void device_delay(int ms)
+{
+  board_delay_ms(ms);
+}
+
 void led_on(void)
 {
   gpio_write_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX,

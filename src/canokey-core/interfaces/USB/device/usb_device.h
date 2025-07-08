@@ -28,8 +28,8 @@ extern IFACE_TABLE_t IFACE_TABLE;
 /** USB endpoint number allocation table. */
 extern EP_TABLE_t EP_TABLE;
 
-void usb_device_init(void);
-void usb_device_deinit(void);
+void cano_usb_device_init(void);
+void cano_usb_device_deinit(void);
 void usb_resources_alloc(void);
 
 #endif /* __USB_DEVICE__H__ */

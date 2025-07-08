@@ -3,7 +3,7 @@
 #include <common.h>
 #include <device.h>
 #include <ecc.h>
-#include <key.h>
+#include <ckey.h>
 #include <memzero.h>
 #include <openpgp.h>
 #include <pin.h>
@@ -44,15 +44,15 @@
 #define ALGO_ID_RSA 0x01
 #define ALGO_ID_ECDH 0x12
 #define ALGO_ID_ECDSA 0x13
-#define ALGO_ID_ED25519 0x16 // https://datatracker.ietf.org/doc/html/draft-ietf-openpgp-rfc4880bis-08#section-9.1
+// #define ALGO_ID_ED25519 0x16 // https://datatracker.ietf.org/doc/html/draft-ietf-openpgp-rfc4880bis-08#section-9.1
 
 static const uint8_t algo_attr[][12] = {
     [SECP256R1] = {9, 0x00, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07},
     [SECP256K1] = {6, 0x00, 0x2B, 0x81, 0x04, 0x00, 0x0A},
     [SECP384R1] = {6, 0x00, 0x2B, 0x81, 0x04, 0x00, 0x22},
     [SM2] = {11, 0x00, 0x06, 0x08, 0x2A, 0x81, 0x1C, 0xCF, 0x55, 0x01, 0x82, 0x2D},
-    [ED25519] = {10, ALGO_ID_ED25519, 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01},
-    [X25519] = {11, ALGO_ID_ECDH, 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01},
+    // [ED25519] = {10, ALGO_ID_ED25519, 0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01},
+    // [X25519] = {11, ALGO_ID_ECDH, 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01},
     [RSA2048] = {6, ALGO_ID_RSA, 0x08, 0x00, 0x00, 0x20, 0x02},
     [RSA3072] = {6, ALGO_ID_RSA, 0x0C, 0x00, 0x00, 0x20, 0x02},
     [RSA4096] = {6, ALGO_ID_RSA, 0x10, 0x00, 0x00, 0x20, 0x02},
@@ -540,7 +540,7 @@ static int openpgp_get_data(const CAPDU *capdu, RAPDU *rapdu) {
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_SIG, SECP256R1, ALGO_ID_ECDSA);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_SIG, SECP256K1, ALGO_ID_ECDSA);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_SIG, SECP384R1, ALGO_ID_ECDSA);
-    ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_SIG, ED25519, ALGO_ID_ED25519);
+    // ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_SIG, ED25519, ALGO_ID_ED25519);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_SIG, SM2, ALGO_ID_ECDSA);
     // DEC
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, RSA2048, ALGO_ID_RSA);
@@ -549,7 +549,7 @@ static int openpgp_get_data(const CAPDU *capdu, RAPDU *rapdu) {
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, SECP256R1, ALGO_ID_ECDH);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, SECP256K1, ALGO_ID_ECDH);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, SECP384R1, ALGO_ID_ECDH);
-    ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, X25519, ALGO_ID_ECDH);
+    // ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, X25519, ALGO_ID_ECDH);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_DEC, SM2, ALGO_ID_ECDH);
     // AUT
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, RSA2048, ALGO_ID_RSA);
@@ -558,7 +558,7 @@ static int openpgp_get_data(const CAPDU *capdu, RAPDU *rapdu) {
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, SECP256R1, ALGO_ID_ECDSA);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, SECP256K1, ALGO_ID_ECDSA);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, SECP384R1, ALGO_ID_ECDSA);
-    ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, ED25519, ALGO_ID_ED25519);
+    // ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, ED25519, ALGO_ID_ED25519);
     ALGO_INFO(TAG_ALGORITHM_ATTRIBUTES_AUT, SM2, ALGO_ID_ECDSA);
 
     LL = off;
@@ -996,15 +996,15 @@ static int openpgp_put_data(const CAPDU *capdu, RAPDU *rapdu) {
       break;
     }
     if (tag == TAG_ALGORITHM_ATTRIBUTES_DEC) {
-      if (type == ED25519) {
-        DBG_MSG("DEC key disallows ed25519\n");
-        EXCEPT(SW_WRONG_DATA);
-      }
+      // if (type == ED25519) {
+      //   DBG_MSG("DEC key disallows ed25519\n");
+      //   EXCEPT(SW_WRONG_DATA);
+      // }
     } else { // TAG_ALGORITHM_ATTRIBUTES_SIG or TAG_ALGORITHM_ATTRIBUTES_AUT
-      if (type == X25519) {
-        DBG_MSG("SIG/AUT key disallows x25519\n");
-        EXCEPT(SW_WRONG_DATA);
-      }
+      // if (type == X25519) {
+      //   DBG_MSG("SIG/AUT key disallows x25519\n");
+      //   EXCEPT(SW_WRONG_DATA);
+      // }
     }
     meta.type = type;
     meta.origin = KEY_ORIGIN_NOT_PRESENT;
