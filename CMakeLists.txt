@@ -97,11 +97,6 @@ sdk_app_src(src/canokey-core/src/applets.c)
 sdk_app_src(src/canokey-core/src/common.c)
 sdk_app_src(src/canokey-core/src/device.c)
 sdk_app_src(src/canokey-core/src/fs.c)
-sdk_app_src(src/canokey-core/src/key.c)
-sdk_app_src(src/canokey-core/src/pin.c)
-
-# sdk_app_src(src/canokey-core/interfaces\NFC\fm.c)
-# sdk_app_src(src/canokey-core/interfaces\NFC\nfc.c)
 
 
 # LittleFS

@@ -54,6 +54,7 @@ const USBD_DescriptorsTypeDef usbdDescriptors = {
     USBD_UrlDescriptor,
 };
 
+#define USB_MAX_EP0_SIZE 16
 /** USB standard device descriptor. */
 static const uint8_t USBD_FS_DeviceDesc[] = {
     0x12,                 /*bLength */
