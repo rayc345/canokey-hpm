@@ -9,8 +9,6 @@
  * To invoke them, you should use the functions provided in block-cipher.h
  */
 
-int aes128_enc(const uint8_t *in, uint8_t *out, const uint8_t *key);
-int aes128_dec(const uint8_t *in, uint8_t *out, const uint8_t *key);
 int aes256_enc(const uint8_t *in, uint8_t *out, const uint8_t *key);
 int aes256_dec(const uint8_t *in, uint8_t *out, const uint8_t *key);
 
