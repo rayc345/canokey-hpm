@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "common.h"
-#include <admin.h>
-#include <ccid.h>
 #include <ctaphid.h>
 #include <device.h>
-#include <kbdhid.h>
-#include <webusb.h>
 
 volatile static uint8_t touch_result;
 static uint8_t has_rf;
@@ -17,10 +13,7 @@ volatile static wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, he
 uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 
 void device_loop(void) {
-  CCID_Loop();
   CTAPHID_Loop(0);
-  WebUSB_Loop();
-  KBDHID_Loop();
 }
 
 uint8_t get_touch_result(void) {
@@ -56,7 +49,6 @@ uint8_t wait_for_user_presence(uint8_t entry) {
     // Keep blinking, in case other applet stops it 
     start_blinking(0);
     // Nested CCID processing is not allowed
-    if (entry != WAIT_ENTRY_CCID) CCID_Loop();
     if (CTAPHID_Loop(entry == WAIT_ENTRY_CTAPHID) == LOOP_CANCEL) {
       DBG_MSG("Cancelled by host\n");
       stop_blinking();
@@ -154,13 +146,13 @@ void start_blinking_interval(uint8_t sec, uint32_t interval) {
 
 void stop_blinking(void) {
   blink_timeout = 0;
-  if (cfg_is_led_normally_on()) {
-    led_on();
-    led_status = ON;
-  } else {
+  // if (cfg_is_led_normally_on()) {
+  //   led_on();
+  //   led_status = ON;
+  // } else {
     led_off();
     led_status = OFF;
-  }
+  // }
 }
 
 void device_init(void) {

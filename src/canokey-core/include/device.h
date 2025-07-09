@@ -3,7 +3,6 @@
 #define _DEVICE_H_
 
 #include "common.h"
-#include "nfc.h"
 
 #define TOUCH_NO 0
 #define TOUCH_SHORT 1

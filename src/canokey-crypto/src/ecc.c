@@ -564,7 +564,7 @@ __attribute__((weak)) void K__ed25519_publickey(const K__ed25519_secret_key sk, 
   // init ed25519 group
   mbedtls_ecp_group ed25519;
   mbedtls_ecp_group_init(&ed25519);
-  mbedtls_ecp_group_load(&ed25519, MBEDTLS_ECP_DP_ED25519);
+  mbedtls_ecp_group_load(&ed25519, MBEDTLS_ECP_DP_CURVE25519);
 
   // load digest
   mbedtls_mpi s;
@@ -615,7 +615,7 @@ __attribute__((weak)) void K__ed25519_sign(const unsigned char *m, size_t mlen, 
   // init ed25519 group
   mbedtls_ecp_group ed25519;
   mbedtls_ecp_group_init(&ed25519);
-  mbedtls_ecp_group_load(&ed25519, MBEDTLS_ECP_DP_ED25519);
+  mbedtls_ecp_group_load(&ed25519, MBEDTLS_ECP_DP_CURVE25519);
 
   // load digest_m into r
   mbedtls_mpi r;

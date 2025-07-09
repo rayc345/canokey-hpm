@@ -81,13 +81,6 @@ typedef struct {
 
 extern uint8_t *global_buffer;
 
-enum {
-  BUFFER_OWNER_NONE = 1,
-  BUFFER_OWNER_CCID,
-  BUFFER_OWNER_WEBUSB,
-  BUFFER_OWNER_USBD, // store the configuration descriptor during a control transfer
-};
-
 void init_apdu_buffer(void); // implement in ccid.c for reusing the ccid buffer
 
 int build_capdu(CAPDU *capdu, const uint8_t *cmd, uint16_t len);
