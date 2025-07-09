@@ -5,7 +5,7 @@
 #include <apdu.h>
 #include <cbor.h>
 #include <common.h>
-//#include <ctaphid.h>
+#include <ctaphid.h>
 #include <ecc.h>
 #include <sha.h>
 
@@ -227,7 +227,6 @@
 #define MAX_CRED_BLOB_LENGTH          32
 #define LARGE_BLOB_KEY_SIZE           32
 #define LARGE_BLOB_SIZE_LIMIT         4096
-#define MAX_CTAP_BUFSIZE              1300
 #define MAX_FRAGMENT_LENGTH           (MAX_CTAP_BUFSIZE - 64)
 
 typedef struct {

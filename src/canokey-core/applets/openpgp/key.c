@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "pgp_key.h"
+#include "key.h"
 #include <fs.h>
 
 #define ATTR_FINGERPRINT 0x00
