@@ -23,19 +23,6 @@ void device_loop(void) {
   KBDHID_Loop();
 }
 
-bool device_allow_kbd_touch(void) {
-  uint32_t now = device_get_tick();
-  if (!device_is_blinking() &&      // applets are not waiting for touch
-      now > TOUCH_AFTER_PWRON &&    // ignore touch for some time after power-on
-      now - TOUCH_EXPIRE_TIME > last_blink &&
-      get_touch_result() != TOUCH_NO
-  ) {
-    DBG_MSG("now=%lu last_blink=%lu\n", now, last_blink);
-    return true;
-  }
-  return false;
-}
-
 uint8_t get_touch_result(void) {
 #ifdef TEST // emulate user interaction in test mode
   testmode_emulate_user_presence();
