@@ -88,6 +88,7 @@ int block_sync(const struct lfs_config *c)
   return 0;
 }
 
+extern uint8_t ctap_install(uint8_t reset);
 void littlefs_init(void)
 {
   xpi_nor_config_option_t option;
@@ -135,19 +136,28 @@ void littlefs_init(void)
   config.prog_buffer = prog_buffer;
   config.lookahead_buffer = lookahead_buffer;
 
-  // mount the filesystem
-  int err = fs_mount(&config);
+  int err;
+  err = fs_format(&config);
+  printf("Formatting %02X\n", err);
+  ctap_install(1);
 
-  // reformat if we can't mount the filesystem
-  // this should only happen on the first boot
-  if (err)
+  while (1)
   {
-    printf("Mount Failed, formatting\n");
-    err = fs_format(&config);
-    printf("Formatting %02X\n", err);
-    err = fs_mount(&config);
-    printf("Remount %02X\n", err);
   }
+
+  // mount the filesystem
+  // int err = fs_mount(&config);
+
+  //// reformat if we can't mount the filesystem
+  //// this should only happen on the first boot
+  // if (err)
+  //{
+  //   printf("Mount Failed, formatting\n");
+  //   err = fs_format(&config);
+  //   printf("Formatting %02X\n", err);
+  //   err = fs_mount(&config);
+  //   printf("Remount %02X\n", err);
+  // }
 
   // lfs_file_t file;
 

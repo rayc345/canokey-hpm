@@ -42,6 +42,7 @@
 
 // hpm_stat_t xpi_nor_user_defined_cmds(void);
 
+extern void device_periodic_task(void);
 extern void fido_usb_device_init(uint8_t busid, uint32_t reg_base);
 
 int main(void)
@@ -56,6 +57,8 @@ int main(void)
     applets_install();
     init_apdu_buffer();
     fido_usb_device_init(0, CONFIG_HPM_USBD_BASE);
+
+    board_timer_create(10, device_periodic_task);
 
     while (1)
     {
