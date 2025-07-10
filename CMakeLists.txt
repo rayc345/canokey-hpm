@@ -14,8 +14,15 @@ find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
 project(Canokey-hpm)
 
-# sdk_compile_definitions(-DCFG_TUSB_MCU=OPT_MCU_HPM)
-# sdk_compile_definitions(-DUSB_HOST_MCU_CORE=HPM_CORE0)
+sdk_compile_definitions(-DMBEDTLS_CONFIG_FILE="hpm_sdk_mbedtls_config.h")
+sdk_compile_definitions(USE_MBEDCRYPTO)
+sdk_compile_definitions(DEBUG_OUTPUT)
+sdk_compile_definitions(LFS_YES_TRACE)
+sdk_compile_definitions(FLT16_MANT_DIG=0)
+
+sdk_compile_options(-fno-inline)
+
+sdk_ses_opt_lib_io_type(RTT)
 
 # tinycbor
 sdk_app_inc(src/3rd_party/tinycbor)
@@ -74,15 +81,10 @@ sdk_app_src(src/3rd_party/littlefs/port/lfs_port.c)
 sdk_app_src(src/3rd_party/littlefs/port/xpi_util.c)
 
 # Main
+sdk_app_inc(inc)
 sdk_app_inc(src)
 sdk_app_src(src/main.c)
 sdk_app_src(src/device2.c)
 
-sdk_compile_options(-fno-inline)
-
-sdk_ses_opt_lib_io_type(RTT)
-
-sdk_compile_definitions(USE_MBEDCRYPTO)
-sdk_compile_definitions(DEBUG_OUTPUT)
 
 generate_ide_projects()

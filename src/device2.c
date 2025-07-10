@@ -70,7 +70,7 @@ void device_periodic_task(void)
     TOUCH_STATE_DEASSERT,
   };
   static uint32_t event_tick, fsm = TOUCH_STATE_IDLE;
-  uint32_t tick = HAL_GetTick();
+  uint32_t tick = device_get_tick();
   switch (fsm)
   {
   case TOUCH_STATE_IDLE:

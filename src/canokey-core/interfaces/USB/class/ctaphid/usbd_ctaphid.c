@@ -330,10 +330,15 @@ uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
             device_delay(1);
         }
         state = CTAPHID_BUSY;
-        // USBD_LL_Transmit(pdev, EP_IN(ctap_hid), report, len);
         // printf("TX:");
         // PRINT_HEX(report, len);
-        usbd_ep_start_write(busid, HIDRAW_IN_EP, report, len);
+        if (len != sizeof(read_buffer))
+        {
+            printf("Wrong Len\n");
+            return 0;
+        }
+        memcpy(read_buffer, report, len);
+        usbd_ep_start_write(busid, HIDRAW_IN_EP, read_buffer, len);
     }
     return 0;
 }
@@ -342,19 +347,17 @@ static void usbd_hid_custom_in_callback(uint8_t busid, uint8_t ep, uint32_t nbyt
 {
     (void)busid;
     (void)ep;
+    (void)nbytes;
     state = CTAPHID_IDLE;
-    // USB_LOG_RAW("actual in len:%d\r\n", nbytes);
 }
 
 static void usbd_hid_custom_out_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
-    // USB_LOG_RAW("actual out len:%d\r\n", nbytes);
+    (void)nbytes;
     // printf("RX:");
     // PRINT_HEX(read_buffer, nbytes);
     CTAPHID_OutEvent(read_buffer);
     usbd_ep_start_read(busid, ep, read_buffer, HID_REPORT_CNT);
-    // read_buffer[0] = 0x02; /* IN: report id */
-    // usbd_ep_start_write(busid, HIDRAW_IN_EP, read_buffer, nbytes);
 }
 
 static struct usbd_endpoint custom_in_ep = {

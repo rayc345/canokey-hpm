@@ -1158,7 +1158,7 @@ static uint8_t ctap_get_assertion(CborEncoder *encoder, uint8_t *params, size_t 
   DBG_MSG("Message: ");
   PRINT_HEX(data_buf, len + CLIENT_DATA_HASH_SIZE);
   len = sign_with_private_key(dc.credential_id.alg_type, &key, data_buf, len + CLIENT_DATA_HASH_SIZE, data_buf);
-  if (len < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
+  // if (len < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
   DBG_MSG("Signature: ");
   PRINT_HEX(data_buf, len);
   ret = cbor_encode_byte_string(&map, data_buf, len);
@@ -2199,8 +2199,8 @@ static int ctap_process_cbor(uint8_t *req, size_t req_len, uint8_t *resp, size_t
       *resp = ctap_reset_data();
       *resp_len = 1;
       break;
-    case CTAP_CRED_MANAGE_LEGACY: // compatible with old libfido2
-      cmd = CTAP_CREDENTIAL_MANAGEMENT;
+    // case CTAP_CRED_MANAGE_LEGACY: // compatible with old libfido2
+    //   cmd = CTAP_CREDENTIAL_MANAGEMENT;
     case CTAP_CREDENTIAL_MANAGEMENT:
       DBG_MSG("----------------CM--------------------\n");
       *resp = ctap_credential_management(&encoder, req, req_len);

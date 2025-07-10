@@ -12,7 +12,7 @@
 static xpi_nor_config_t s_xpi_nor_config;
 
 #define READ_SIZE 8
-#define STORAGE_SECTOR 8
+#define STORAGE_SECTOR 32
 #define FLASH_ADDR(b, o) (base_address + (b) * page_sz + (o))
 
 static uint32_t sector_sz;
@@ -33,6 +33,7 @@ static alignas(4) uint8_t lookahead_buffer[LOOKAHEAD_SIZE];
 
 int block_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size)
 {
+  (void)(c);
   int ret = 0;
   hpm_stat_t status;
 
@@ -48,6 +49,7 @@ int block_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, voi
 
 int block_prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size)
 {
+  (void)(c);
   int ret = 0;
   hpm_stat_t status;
 
@@ -66,6 +68,7 @@ int block_prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, con
 
 int block_erase(const struct lfs_config *c, lfs_block_t block)
 {
+  (void)(c);
   int ret = 0;
 
   hpm_stat_t status;
@@ -81,6 +84,7 @@ int block_erase(const struct lfs_config *c, lfs_block_t block)
 
 int block_sync(const struct lfs_config *c)
 {
+  (void)(c);
   return 0;
 }
 
