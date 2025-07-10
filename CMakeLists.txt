@@ -50,7 +50,6 @@ sdk_app_src(src/canokey-crypto/src/hmac.c)
 sdk_app_src(src/canokey-crypto/src/memzero.c)
 sdk_app_src(src/canokey-crypto/src/rand.c)
 sdk_app_src(src/canokey-crypto/src/sha.c)
-sdk_app_src(src/canokey-crypto/src/sm3.c)
 
 # Canokey-core
 sdk_app_inc(src/canokey-core/applets/ctap)

@@ -42,8 +42,12 @@
 
 #define LO(x) ((uint8_t)((x)&0x00FF))
 #define HI(x) ((uint8_t)(((x)&0xFF00) >> 8))
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 #define SWAP(x, y, T) do { T SWAP = x; x = y; y = SWAP; } while (0)
 
 #define UNUSED(x) ((void)(x))

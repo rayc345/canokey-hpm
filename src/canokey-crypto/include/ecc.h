@@ -14,8 +14,6 @@ typedef struct {
   uint8_t pub[MAX_EC_PUBLIC_KEY];
 } ecc_key_t;
 
-extern const uint8_t SM2_ID_DEFAULT[];
-
 void swap_big_number_endian(uint8_t buf[32]);
 
 /**
@@ -71,17 +69,6 @@ int ecc_sign(key_type_t type, const ecc_key_t *key, const uint8_t *data_or_diges
  * @return Length of signature
  */
 size_t ecdsa_sig2ansi(uint8_t key_len, const uint8_t *input, uint8_t *output);
-
-/**
- * Compute Z specified by SM2
- *
- * @param id    User's ID. The first byte contains the length and followed by the ID.
- * @param key   Pointer to the key
- * @param z     The output buffer
- *
- * @return 0: Success, -1: Error
- */
-int sm2_z(const uint8_t *id, const ecc_key_t *key, uint8_t *z);
 
 /**
  * Compute ECDH result

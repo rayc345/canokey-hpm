@@ -60,8 +60,6 @@ static const uint8_t aaguid[] = {0x24, 0x4e, 0xb2, 0x9e, 0xe0, 0x90, 0x4e, 0x49,
 static uint8_t consecutive_pin_counter, last_cmd;
 // source of APDU in process 
 static ctap_src_t current_cmd_src;
-// SM2 attr
-CTAP_sm2_attr ctap_sm2_attr;
 
 uint8_t ctap_install(uint8_t reset) {
   consecutive_pin_counter = 3;
@@ -69,7 +67,6 @@ uint8_t ctap_install(uint8_t reset) {
   current_cmd_src = CTAP_SRC_NONE;
   cp_initialize();
   if (!reset && get_file_size(LB_FILE) >= 0) {
-    if (read_attr(CTAP_CERT_FILE, SM2_ATTR, &ctap_sm2_attr, sizeof(ctap_sm2_attr)) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
     DBG_MSG("CTAP initialized\n");
     return 0;
   }
@@ -95,32 +92,12 @@ uint8_t ctap_install(uint8_t reset) {
 
 int ctap_install_private_key(const CAPDU *capdu, RAPDU *rapdu) {
   if (LC != PRI_KEY_SIZE) EXCEPT(SW_WRONG_LENGTH);
-  // initialize SM2 config
-  ctap_sm2_attr.enabled = 0;
-  ctap_sm2_attr.curve_id = 9; // An unused one. See https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
-  ctap_sm2_attr.algo_id = -48; // An unused one. See https://www.iana.org/assignments/cose/cose.xhtml#algorithms
-  if (write_attr(CTAP_CERT_FILE, SM2_ATTR, &ctap_sm2_attr, sizeof(ctap_sm2_attr)) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
   return write_attr(CTAP_CERT_FILE, KEY_ATTR, DATA, LC);
 }
 
 int ctap_install_cert(const CAPDU *capdu, RAPDU *rapdu) {
   if (LC > MAX_CERT_SIZE) EXCEPT(SW_WRONG_LENGTH);
   return write_file(CTAP_CERT_FILE, DATA, 0, LC, 1);
-}
-
-int ctap_read_sm2_config(const CAPDU *capdu, RAPDU *rapdu) {
-  UNUSED(capdu);
-  const int ret = read_attr(CTAP_CERT_FILE, SM2_ATTR, RDATA, sizeof(ctap_sm2_attr));
-  if (ret < 0) return ret;
-  LL = ret;
-  return 0;
-}
-
-int ctap_write_sm2_config(const CAPDU *capdu, RAPDU *rapdu) {
-  if (LC != sizeof(ctap_sm2_attr)) EXCEPT(SW_WRONG_LENGTH);
-  const int ret = write_attr(CTAP_CERT_FILE, SM2_ATTR, DATA, sizeof(ctap_sm2_attr));
-  memcpy(&ctap_sm2_attr, DATA, sizeof(ctap_sm2_attr));
-  return ret;
 }
 
 static int build_ecdsa_cose_key(uint8_t *data, int algo, int curve) {
@@ -287,8 +264,6 @@ uint8_t ctap_make_auth_data(uint8_t *rp_id_hash, uint8_t *buf, uint8_t flags, co
       cose_key_size = build_ecdsa_cose_key(ad->at.public_key, COSE_ALG_ES256, COSE_KEY_CRV_P256);
     } else if (alg_type == COSE_ALG_EDDSA) {
       cose_key_size = build_ed25519_cose_key(ad->at.public_key);
-    } else if (alg_type == ctap_sm2_attr.algo_id) {
-      cose_key_size = build_ecdsa_cose_key(ad->at.public_key, ctap_sm2_attr.algo_id, ctap_sm2_attr.curve_id);
     } else {
       DBG_MSG("Unknown algorithm type\n");
       return CTAP2_ERR_UNHANDLED_REQUEST;
@@ -1353,7 +1328,7 @@ static uint8_t ctap_get_info(CborEncoder *encoder) {
   // algorithms
   ret = cbor_encode_int(&map, GI_RESP_ALGORITHMS);
   CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_create_array(&map, &array, ctap_sm2_attr.enabled ? 3 : 2);
+  ret = cbor_encoder_create_array(&map, &array, 2);
   CHECK_CBOR_RET(ret);
   ret = cbor_encoder_create_map(&array, &sub_map, 2);
   CHECK_CBOR_RET(ret);
@@ -1383,22 +1358,6 @@ static uint8_t ctap_get_info(CborEncoder *encoder) {
   }
   ret = cbor_encoder_close_container(&array, &sub_map);
   CHECK_CBOR_RET(ret);
-  if (ctap_sm2_attr.enabled) {
-    ret = cbor_encoder_create_map(&array, &sub_map, 2);
-    CHECK_CBOR_RET(ret);
-    {
-      ret = cbor_encode_text_stringz(&sub_map, "alg");
-      CHECK_CBOR_RET(ret);
-      ret = cbor_encode_int(&sub_map, ctap_sm2_attr.algo_id);
-      CHECK_CBOR_RET(ret);
-      ret = cbor_encode_text_stringz(&sub_map, "type");
-      CHECK_CBOR_RET(ret);
-      ret = cbor_encode_text_stringz(&sub_map, "public-key");
-      CHECK_CBOR_RET(ret);
-    }
-    ret = cbor_encoder_close_container(&array, &sub_map);
-    CHECK_CBOR_RET(ret);
-  }
   ret = cbor_encoder_close_container(&map, &array);
   CHECK_CBOR_RET(ret);
 
