@@ -77,7 +77,7 @@ sdk_app_src(src/3rd_party/littlefs/lfs_util.c)
 sdk_app_src(src/3rd_party/littlefs/lfs.c)
 sdk_app_inc(src/3rd_party/littlefs/port)
 sdk_app_src(src/3rd_party/littlefs/port/lfs_port.c)
-sdk_app_src(src/3rd_party/littlefs/port/xpi_util.c)
+sdk_app_src(src/3rd_party/littlefs/port/hpm_flash.c)
 
 # Main
 sdk_app_inc(inc)

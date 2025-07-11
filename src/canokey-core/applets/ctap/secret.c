@@ -210,8 +210,6 @@ key_type_t cose_alg_to_key_type(int alg) {
   switch (alg) {
   case COSE_ALG_ES256:
     return SECP256R1;
-  case COSE_ALG_EDDSA:
-    return ED25519;
   default:
     return KEY_TYPE_PKC_END;
   }
@@ -343,18 +341,6 @@ int sign_with_private_key(int32_t alg_type, ecc_key_t *key, const uint8_t *input
   if (key_type == KEY_TYPE_PKC_END) {
     DBG_MSG("Unsupported algo key_type\n");
     return -1;
-  }
-
-  if (key_type == ED25519) {
-    if (ecc_complete_key(key_type, key) < 0) {
-      ERR_MSG("Failed to complete key\n");
-      return -1;
-    }
-    if (ecc_sign(key_type, key, input, len, sig) < 0) {
-      ERR_MSG("Failed to sign\n");
-      return -1;
-    }
-    return SIGNATURE_LENGTH[key_type];
   }
 
   sha256_init();

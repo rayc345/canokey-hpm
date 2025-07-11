@@ -183,8 +183,7 @@ uint8_t parse_verify_pub_key_cred_params(CborValue *val, int32_t *alg_type) {
   for (size_t i = 0; i < arr_length; ++i) {
     ret = parse_pub_key_cred_param(&arr, &cur_alg_type);
     CHECK_PARSER_RET(ret);
-    if (ret == 0 && (cur_alg_type == COSE_ALG_ES256 ||
-                     cur_alg_type == COSE_ALG_EDDSA)) {
+    if (ret == 0 && (cur_alg_type == COSE_ALG_ES256)) {
       // https://fidoalliance.org/specs/fido-v2.1-ps-20210615/fido-client-to-authenticator-protocol-v2.1-ps-errata-20220621.html#authenticatorMakeCredential
       //
       // > This sequence is ordered from most preferred (by the RP) to least preferred.
@@ -674,7 +673,6 @@ uint8_t parse_make_credential(CborParser *parser, CTAP_make_credential *mc, cons
         ret = parse_verify_pub_key_cred_params(&map, &mc->alg_type);
         CHECK_PARSER_RET(ret);
         if (mc->alg_type == COSE_ALG_ES256) DBG_MSG("EcDSA found\n");
-        else if (mc->alg_type == COSE_ALG_EDDSA) DBG_MSG("EdDSA found\n");
         else
           DBG_MSG("Found other algorithm\n");
         mc->parsed_params |= PARAM_PUB_KEY_CRED_PARAMS;

@@ -51,7 +51,7 @@ int ecc_complete_key(key_type_t type, ecc_key_t *key);
  *
  * @param type           ECC algorithm
  * @param key            Pointer to the key
- * @param data_or_digest The data (for ED25519) or the digest (for other algorithms)
+ * @param data_or_digest The digest (for other algorithms)
  * @param sig            The output buffer
  *
  * @return 0: Success, -1: Error
@@ -119,7 +119,7 @@ int K__short_weierstrass_complete_key(key_type_t type, ecc_key_t *key);
  *
  * @param type           ECC algorithm
  * @param key            Pointer to the key
- * @param data_or_digest The data (for ED25519) or the digest (for other algorithms)
+ * @param data_or_digest The digest (for other algorithms)
  * @param sig            The output buffer
  *
  * @return 0: Success, -1: Error
@@ -137,41 +137,5 @@ int K__short_weierstrass_sign(key_type_t type, const ecc_key_t *key, const uint8
  * @return 0: Success, -1: Error
  */
 int K__short_weierstrass_ecdh(key_type_t type, const uint8_t *priv_key, const uint8_t *receiver_pub_key, uint8_t *out);
-
-typedef unsigned char K__ed25519_signature[64];
-typedef unsigned char K__ed25519_public_key[32];
-typedef unsigned char K__ed25519_secret_key[32];
-typedef unsigned char K__x25519_key[32];
-
-/**
- * Calculate public key from private key
- *
- * @param sk Input private key
- * @param pk Output public key
-*/
-void K__ed25519_publickey(const K__ed25519_secret_key sk, K__ed25519_public_key pk);
-
-/**
- * Calculate Ed25519 signature of data
- *
- * @param m Input data
- * @param mlen Length of data
- * @param sk Private key
- * @param pk Public key
- * @param rs Output signature
-*/
-void K__ed25519_sign(const unsigned char *m, size_t mlen, const K__ed25519_secret_key sk,
-                     const K__ed25519_public_key pk, K__ed25519_signature rs);
-
-/**
- * Calculate shared_secret = private_key * public_key, the second step of X25519
- *
- * Note: X25519 spec uses little endian, but we use big endian here
- *
- * @param shared_secret Shared secret in big endian
- * @param private_key Valid private key in big endian
- * @param public_key Public key in big endian
-*/
-void K__x25519(K__x25519_key shared_secret, const K__x25519_key private_key, const K__x25519_key public_key);
 
 #endif

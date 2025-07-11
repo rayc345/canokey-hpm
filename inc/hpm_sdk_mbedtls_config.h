@@ -34,34 +34,34 @@
 #ifndef HPM_SDK_MBEDTLS_CONFIG_H
 #define HPM_SDK_MBEDTLS_CONFIG_H
 
-#if defined(HPMSOC_HAS_HPMSDK_SDP)
+// #if defined(HPMSOC_HAS_HPMSDK_SDP)
 
-/******************************************************************************/
-/*************************** AES **********************************************/
-/******************************************************************************/
-#define MBEDTLS_AES_ALT
-#define MBEDTLS_AES_SETKEY_ENC_ALT
-#define MBEDTLS_AES_SETKEY_DEC_ALT
-#define MBEDTLS_AES_ENCRYPT_ALT
-#define MBEDTLS_AES_DECRYPT_ALT
-#define MBEDTLS_AES_CRYPT_CBC_ALT
-#define MBEDTLS_AES192_ALT_SW
+// /******************************************************************************/
+// /*************************** AES **********************************************/
+// /******************************************************************************/
+// #define MBEDTLS_AES_ALT
+// #define MBEDTLS_AES_SETKEY_ENC_ALT
+// #define MBEDTLS_AES_SETKEY_DEC_ALT
+// #define MBEDTLS_AES_ENCRYPT_ALT
+// #define MBEDTLS_AES_DECRYPT_ALT
+// #define MBEDTLS_AES_CRYPT_CBC_ALT
+// #define MBEDTLS_AES192_ALT_SW
 
-/******************************************************************************/
-/*************************** SHA1 *********************************************/
-/******************************************************************************/
-#define MBEDTLS_SHA1_C
-#define MBEDTLS_SHA1_ALT
-#define MBEDTLS_HPM_SDP_SHA1
+// /******************************************************************************/
+// /*************************** SHA1 *********************************************/
+// /******************************************************************************/
+// #define MBEDTLS_SHA1_C
+// #define MBEDTLS_SHA1_ALT
+// #define MBEDTLS_HPM_SDP_SHA1
 
-/******************************************************************************/
-/*************************** SHA256********************************************/
-/******************************************************************************/
-#define MBEDTLS_SHA256_C
-#define MBEDTLS_SHA256_ALT
-#define MBEDTLS_HPM_SHA224_ALT_SW
-#define MBEDTLS_HPM_SDP_SHA256
-#endif
+// /******************************************************************************/
+// /*************************** SHA256********************************************/
+// /******************************************************************************/
+// #define MBEDTLS_SHA256_C
+// #define MBEDTLS_SHA256_ALT
+// #define MBEDTLS_HPM_SHA224_ALT_SW
+// #define MBEDTLS_HPM_SDP_SHA256
+// #endif
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_DEPRECATE)
 #define _CRT_SECURE_NO_DEPRECATE 1
