@@ -67,7 +67,7 @@ static const uint8_t USBD_KBDHID_Desc[] = {
 };
 // clang-format on
 
-uint8_t USBD_KBDHID_Init(USBD_HandleTypeDef *pdev) {
+uint8_t USBD_KBDHID_Init(uint8_t busid) {
   hid_handle.state = KBDHID_IDLE;
   KBDHID_Init();
   if (EP_OUT(kbd_hid) != 0xFF) {
@@ -78,7 +78,7 @@ uint8_t USBD_KBDHID_Init(USBD_HandleTypeDef *pdev) {
   return USBD_OK;
 }
 
-uint8_t USBD_KBDHID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req) {
+uint8_t USBD_KBDHID_Setup(uint8_t busid) {
   uint16_t len = 0;
   const uint8_t *pbuf = NULL;
 
@@ -124,13 +124,13 @@ uint8_t USBD_KBDHID_DataIn() {
   return USBD_OK;
 }
 
-uint8_t USBD_KBDHID_DataOut(USBD_HandleTypeDef *pdev) {
+uint8_t USBD_KBDHID_DataOut(uint8_t busid) {
   //   KBDHID_OutEvent(hid_handle.report_buf);
   USBD_LL_PrepareReceive(pdev, EP_OUT(kbd_hid), hid_handle.report_buf, USBD_KBDHID_REPORT_BUF_SIZE);
   return USBD_OK;
 }
 
-uint8_t USBD_KBDHID_SendReport(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len) {
+uint8_t USBD_KBDHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len) {
   volatile KBDHID_StateTypeDef *state = &hid_handle.state;
 
   if (pdev->dev_state == USBD_STATE_CONFIGURED && EP_OUT(kbd_hid) != 0xFF) {
