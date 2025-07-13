@@ -8,7 +8,7 @@
 static uint8_t ccid_out_buf[64];
 static volatile uint8_t bulk_in_state;
 
-uint8_t USBD_CCID_Init(uint8_t busid) {
+uint8_t USBD_CCID_Init(USBD_HandleTypeDef *pdev) {
   bulk_in_state = CCID_STATE_IDLE;
   USBD_LL_OpenEP(pdev, EP_IN(ccid), USBD_EP_TYPE_BULK, EP_SIZE(ccid));
   USBD_LL_OpenEP(pdev, EP_OUT(ccid), USBD_EP_TYPE_BULK, EP_SIZE(ccid));
@@ -17,7 +17,7 @@ uint8_t USBD_CCID_Init(uint8_t busid) {
   return 0;
 }
 
-uint8_t USBD_CCID_DataIn(uint8_t busid) {
+uint8_t USBD_CCID_DataIn(USBD_HandleTypeDef *pdev) {
   if (bulk_in_state == CCID_STATE_DATA_IN_WITH_ZLP) {
     bulk_in_state = CCID_STATE_DATA_IN;
     uint8_t addr = EP_OUT(ccid);
@@ -29,7 +29,7 @@ uint8_t USBD_CCID_DataIn(uint8_t busid) {
   return USBD_OK;
 }
 
-uint8_t USBD_CCID_DataOut(uint8_t busid) {
+uint8_t USBD_CCID_DataOut(USBD_HandleTypeDef *pdev) {
   uint8_t addr = EP_OUT(ccid);
   uint8_t size = EP_SIZE(ccid);
   uint8_t *data_buf = ccid_out_buf;
@@ -41,7 +41,7 @@ uint8_t USBD_CCID_DataOut(uint8_t busid) {
   return USBD_OK;
 }
 
-uint8_t CCID_Response_SendData(uint8_t busid, const uint8_t *buf, uint16_t len,
+uint8_t CCID_Response_SendData(USBD_HandleTypeDef *pdev, const uint8_t *buf, uint16_t len,
                                uint8_t is_time_extension_request) {
   USBD_StatusTypeDef ret = USBD_OK;
   if (pdev->dev_state == USBD_STATE_CONFIGURED) {

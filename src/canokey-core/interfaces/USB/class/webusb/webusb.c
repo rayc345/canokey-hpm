@@ -19,7 +19,7 @@ static CAPDU apdu_cmd;
 static RAPDU apdu_resp;
 static uint32_t last_keepalive;
 
-uint8_t USBD_WEBUSB_Init(uint8_t busid) {
+uint8_t USBD_WEBUSB_Init(USBD_HandleTypeDef *pdev) {
   UNUSED(pdev);
 
   state = STATE_IDLE;
@@ -30,7 +30,7 @@ uint8_t USBD_WEBUSB_Init(uint8_t busid) {
   return USBD_OK;
 }
 
-uint8_t USBD_WEBUSB_Setup(uint8_t busid, USBD_SetupReqTypedef *req) {
+uint8_t USBD_WEBUSB_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req) {
   // CCID_eject();
   last_keepalive = device_get_tick();
   switch (req->bRequest) {
@@ -111,7 +111,7 @@ void WebUSB_Loop(void) {
   state = STATE_SENDING_RESP;
 }
 
-uint8_t USBD_WEBUSB_TxSent(uint8_t busid) {
+uint8_t USBD_WEBUSB_TxSent(USBD_HandleTypeDef *pdev) {
   UNUSED(pdev);
 
   //DBG_MSG("state = %d\n", state);
@@ -123,7 +123,7 @@ uint8_t USBD_WEBUSB_TxSent(uint8_t busid) {
   return USBD_OK;
 }
 
-uint8_t USBD_WEBUSB_RxReady(uint8_t busid) {
+uint8_t USBD_WEBUSB_RxReady(USBD_HandleTypeDef *pdev) {
   UNUSED(pdev);
 
   //  state should be STATE_RECVING now

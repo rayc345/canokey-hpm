@@ -2,6 +2,8 @@
 #ifndef __USB_CTAPHID_H
 #define __USB_CTAPHID_H
 
+#include <usbd_ioreq.h>
+
 #define CTAPHID_DESCRIPTOR_TYPE 0x21
 #define CTAPHID_REPORT_DESC 0x22
 #define CTAPHID_REQ_SET_IDLE 0x0A
@@ -12,12 +14,14 @@ typedef enum { CTAPHID_IDLE = 0, CTAPHID_BUSY } CTAPHID_StateTypeDef;
 
 typedef struct {
   uint8_t report_buf[USBD_CTAPHID_REPORT_BUF_SIZE];
+  uint32_t idle_state;
   CTAPHID_StateTypeDef state;
 } USBD_CTAPHID_HandleTypeDef;
 
-void USBD_CTAPHID_DataIn(uint8_t busid, uint8_t ep, uint32_t nbytes);
-void USBD_CTAPHID_DataOut(uint8_t busid, uint8_t ep, uint32_t nbytes);
-uint8_t USBD_CTAPHID_Init(uint8_t busid);
-uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len);
+uint8_t USBD_CTAPHID_Init(USBD_HandleTypeDef *pdev);
+uint8_t USBD_CTAPHID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+uint8_t USBD_CTAPHID_DataIn(void);
+uint8_t USBD_CTAPHID_DataOut(USBD_HandleTypeDef *pdev);
+uint8_t USBD_CTAPHID_SendReport(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len);
 
 #endif /* __USB_CTAPHID_H */

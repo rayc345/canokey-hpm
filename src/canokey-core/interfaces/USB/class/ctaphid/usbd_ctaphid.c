@@ -1,33 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <ctaphid.h>
 #include <device.h>
-#include "usbd.h"
-// #include <usb_device.h>
+#include <usb_device.h>
 #include <usbd_ctaphid.h>
-// #include <usbd_ctlreq.h>
+#include <usbd_ctlreq.h>
 
 static USBD_CTAPHID_HandleTypeDef hid_handle;
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ctaphid_buffer[HID_REPORT_CNT];
 
-void USBD_CTAPHID_DataIn(uint8_t busid, uint8_t ep, uint32_t nbytes)
-{
-  (void)busid;
-  (void)ep;
-  (void)nbytes;
-  hid_handle.state = CTAPHID_IDLE;
-}
-
-void USBD_CTAPHID_DataOut(uint8_t busid, uint8_t ep, uint32_t nbytes)
-{
-  (void)nbytes;
-  // printf("RX:");
-  // PRINT_HEX(read_buffer, nbytes);
-  CTAPHID_OutEvent(hid_handle.report_buf);
-  usbd_ep_start_read(busid, ep, ctaphid_buffer, HID_REPORT_CNT);
-}
-
-/*!< custom hid report descriptor */
-static const uint8_t hid_custom_report_desc[HID_CUSTOM_REPORT_DESC_SIZE] = {
+// clang-format off
+static const uint8_t report_desc[] = {
     0x06, 0xD0, 0xF1, // USAGE_PAGE (CTAP Usage Page)
     0x09, 0x01,       // USAGE (CTAP HID)
     0xA1, 0x01,       // COLLECTION (Application)
@@ -46,46 +27,90 @@ static const uint8_t hid_custom_report_desc[HID_CUSTOM_REPORT_DESC_SIZE] = {
     0xC0              // END_COLLECTION
 };
 
-static struct usbd_endpoint ctaphid_in_ep = {
-    .ep_cb = USBD_CTAPHID_DataIn,
-    .ep_addr = HIDRAW_IN_EP};
+static const uint8_t USBD_CTAPHID_Desc[] = {
+    0x09,                    /* bLength: CTAP HID Descriptor size */
+    CTAPHID_DESCRIPTOR_TYPE, /* bDescriptorType: CTAP HID */
+    0x11, 0x01,              /* bCTAP_HID: CTAP HID Class Spec release number */
+    0x00,                    /* bCountryCode: Hardware target country */
+    0x01,                    /* bNumDescriptors: 1 */
+    0x22,                    /* bDescriptorType */
+    CTAPHID_REPORT_DESC_SIZE,/* wItemLength: Length of Report */
+    0x00,
+};
+// clang-format on
 
-static struct usbd_endpoint ctaphid_out_ep = {
-    .ep_cb = USBD_CTAPHID_DataOut,
-    .ep_addr = HIDRAW_OUT_EP};
-struct usbd_interface intf0;
-
-uint8_t USBD_CTAPHID_Init(uint8_t busid)
-{
+uint8_t USBD_CTAPHID_Init(USBD_HandleTypeDef *pdev) {
   hid_handle.state = CTAPHID_IDLE;
-  usbd_add_interface(busid, usbd_hid_init_intf(busid, &intf0, hid_custom_report_desc, HID_CUSTOM_REPORT_DESC_SIZE));
-  usbd_add_endpoint(busid, &ctaphid_in_ep);
-  usbd_add_endpoint(busid, &ctaphid_out_ep);
-
+  USBD_LL_OpenEP(pdev, EP_IN(ctap_hid), USBD_EP_TYPE_INTR, EP_SIZE(ctap_hid));
+  USBD_LL_OpenEP(pdev, EP_OUT(ctap_hid), USBD_EP_TYPE_INTR, EP_SIZE(ctap_hid));
   CTAPHID_Init(USBD_CTAPHID_SendReport);
-  usbd_ep_start_read(busid, HIDRAW_OUT_EP, ctaphid_buffer, HID_REPORT_CNT);
-  return 0;
+  USBD_LL_PrepareReceive(pdev, EP_OUT(ctap_hid), hid_handle.report_buf, USBD_CTAPHID_REPORT_BUF_SIZE);
+  return USBD_OK;
 }
 
-uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
-{
-  volatile CTAPHID_StateTypeDef *state = &hid_handle.state;
-  int retry = 0;
-  while (*state != CTAPHID_IDLE)
-  {
-    // if reports are not being processed on host, we may get stuck here
-    if (++retry > 50)
-      return 1;
-    device_delay(1);
+uint8_t USBD_CTAPHID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req) {
+  uint16_t len = 0;
+  const uint8_t *pbuf = NULL;
+
+  switch (req->bmRequest & USB_REQ_TYPE_MASK) {
+  case USB_REQ_TYPE_CLASS:
+    switch (req->bRequest) {
+    case CTAPHID_REQ_SET_IDLE:
+      hid_handle.idle_state = (uint8_t)(req->wValue >> 8);
+      break;
+
+    default:
+      USBD_CtlError(pdev, req);
+      return USBD_FAIL;
+    }
+    break;
+
+  case USB_REQ_TYPE_STANDARD:
+    switch (req->bRequest) {
+    case USB_REQ_GET_DESCRIPTOR:
+      if (req->wValue >> 8 == CTAPHID_REPORT_DESC) {
+        len = (uint16_t)MIN(sizeof(report_desc), req->wLength);
+        pbuf = report_desc;
+      } else if (req->wValue >> 8 == CTAPHID_DESCRIPTOR_TYPE) {
+        pbuf = USBD_CTAPHID_Desc;
+        len = (uint16_t)MIN(sizeof(USBD_CTAPHID_Desc), req->wLength);
+      } else {
+        USBD_CtlError(pdev, req);
+        break;
+      }
+      USBD_CtlSendData(pdev, pbuf, len, 0);
+      break;
+
+    default:
+      USBD_CtlError(pdev, req);
+      return USBD_FAIL;
+    }
   }
-  hid_handle.state = CTAPHID_BUSY;
-  // USBD_LL_Transmit(pdev, EP_IN(ctap_hid), report, len);
-  if (len != sizeof(ctaphid_buffer))
-  {
-    printf("Wrong Len\n");
-    return 0;
+  return USBD_OK;
+}
+
+uint8_t USBD_CTAPHID_DataIn() {
+  hid_handle.state = CTAPHID_IDLE;
+  return USBD_OK;
+}
+
+uint8_t USBD_CTAPHID_DataOut(USBD_HandleTypeDef *pdev) {
+  CTAPHID_OutEvent(hid_handle.report_buf);
+  USBD_LL_PrepareReceive(pdev, EP_OUT(ctap_hid), hid_handle.report_buf, USBD_CTAPHID_REPORT_BUF_SIZE);
+  return USBD_OK;
+}
+
+uint8_t USBD_CTAPHID_SendReport(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len) {
+  if (pdev->dev_state == USBD_STATE_CONFIGURED) {
+    volatile CTAPHID_StateTypeDef *state = &hid_handle.state;
+    int retry = 0;
+    while (*state != CTAPHID_IDLE) {
+      // if reports are not being processed on host, we may get stuck here
+      if (++retry > 50) return USBD_BUSY;
+      device_delay(1);
+    }
+    hid_handle.state = CTAPHID_BUSY;
+    USBD_LL_Transmit(pdev, EP_IN(ctap_hid), report, len);
   }
-  memcpy(ctaphid_buffer, report, len);
-  usbd_ep_start_write(busid, HIDRAW_IN_EP, ctaphid_buffer, len);
-  return 0;
+  return USBD_OK;
 }

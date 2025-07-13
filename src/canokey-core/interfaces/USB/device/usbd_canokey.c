@@ -5,18 +5,18 @@
 #include <usbd_kbdhid.h>
 #include <webusb.h>
 
-static uint8_t USBD_CANOKEY_Init(uint8_t busid, uint8_t cfgidx);
-static uint8_t USBD_CANOKEY_DeInit(uint8_t busid, uint8_t cfgidx);
-static uint8_t USBD_CANOKEY_Setup(uint8_t busid);
-static uint8_t USBD_CANOKEY_DataIn(uint8_t busid, uint8_t epnum);
-static uint8_t USBD_CANOKEY_DataOut(uint8_t busid, uint8_t epnum);
+static uint8_t USBD_CANOKEY_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+static uint8_t USBD_CANOKEY_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+static uint8_t USBD_CANOKEY_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+static uint8_t USBD_CANOKEY_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum);
+static uint8_t USBD_CANOKEY_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum);
 
 const USBD_ClassTypeDef USBD_CANOKEY = {
     USBD_CANOKEY_Init,   USBD_CANOKEY_DeInit, USBD_CANOKEY_Setup,   USBD_WEBUSB_TxSent,
     USBD_WEBUSB_RxReady, USBD_CANOKEY_DataIn, USBD_CANOKEY_DataOut,
 };  // Only WebUSB will handle EP0 data
 
-static uint8_t USBD_CANOKEY_Init(uint8_t busid, uint8_t cfgidx) {
+static uint8_t USBD_CANOKEY_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx) {
   UNUSED(cfgidx);
 
   USBD_CTAPHID_Init(pdev);
@@ -28,14 +28,14 @@ static uint8_t USBD_CANOKEY_Init(uint8_t busid, uint8_t cfgidx) {
   return 0;
 }
 
-static uint8_t USBD_CANOKEY_DeInit(uint8_t busid, uint8_t cfgidx) {
+static uint8_t USBD_CANOKEY_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx) {
   UNUSED(pdev);
   UNUSED(cfgidx);
 
   return 0;
 }
 
-static uint8_t USBD_CANOKEY_Setup(uint8_t busid) {
+static uint8_t USBD_CANOKEY_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req) {
   uint8_t recipient = req->bmRequest & USB_REQ_RECIPIENT_MASK;
   DBG_MSG("Recipient: %X, Index: %X\n", recipient, req->wIndex);
 
@@ -53,7 +53,7 @@ static uint8_t USBD_CANOKEY_Setup(uint8_t busid) {
   return USBD_FAIL;
 }
 
-static uint8_t USBD_CANOKEY_DataIn(uint8_t busid, uint8_t epnum) {
+static uint8_t USBD_CANOKEY_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum) {
   if (epnum == (0x7F & EP_IN(ctap_hid))) return USBD_CTAPHID_DataIn();
   if (epnum == (0x7F & EP_IN(kbd_hid))) return USBD_KBDHID_DataIn();
   if (epnum == (0x7F & EP_IN(ccid))) return USBD_CCID_DataIn(pdev);
@@ -61,7 +61,7 @@ static uint8_t USBD_CANOKEY_DataIn(uint8_t busid, uint8_t epnum) {
   return USBD_FAIL;
 }
 
-static uint8_t USBD_CANOKEY_DataOut(uint8_t busid, uint8_t epnum) {
+static uint8_t USBD_CANOKEY_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum) {
   if (epnum == EP_OUT(ctap_hid)) return USBD_CTAPHID_DataOut(pdev);
   if (epnum == EP_OUT(kbd_hid)) return USBD_KBDHID_DataOut(pdev);
   if (epnum == EP_OUT(ccid)) return USBD_CCID_DataOut(pdev);
