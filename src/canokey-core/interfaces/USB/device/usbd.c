@@ -7,8 +7,10 @@
 
 #include "board.h"
 #include "usbd_core.h"
+#include "usbd.h"
 #include "usb_hid.h"
 #include "ccid.h"
+#include "webusb.h"
 
 enum
 {
@@ -26,14 +28,14 @@ enum
 #define CCID_IN_EP 0x81
 #define CCID_OUT_EP 0x02
 
-#define CCID_EP_MPS_HS 1024
+#define CCID_EP_MPS_HS 512
 #define CCID_EP_MPS_FS 64
 
 // CTAP_HID
 #define CTAPHID_IN_EP 0x83
 #define CTAPHID_OUT_EP 0x04
 
-#define CTAPHID_EP_MPS_HS 1024
+#define CTAPHID_EP_MPS_HS 512
 #define CTAPHID_EP_MPS_FS 64
 #define CTAPHID_EP_INTERVAL 10
 
@@ -184,31 +186,31 @@ static const uint8_t config_descriptor_hs[] = {
     /************** Descriptor of CCID interface ****************/
     USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
-    0x36,                                      /* bLength: CCID Descriptor size */
-    0x21,                                      /* bDescriptorType: Functional Descriptor type. */
-    0x10,                                      /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
-    0x01,                                      /* bcdCCID(MSB) */
-    CCID_NUMBER_OF_SLOTS - 1,                  /* bMaxSlotIndex: highest available slot on this device */
-    0x07,                                      /* bVoltageSupport: 5.0V/3.3V/1.8V*/
-    0x02, 0x00, 0x00, 0x00,                    /* dwProtocols: Protocol T=1 */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwDefaultClock: 4MHz */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwMaximumClock: 4MHz */
-    0x00,                                      /* bNumClockSupported : no setting from PC */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwDataRate: Default ICC I/O data rate */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwMaxDataRate: Maximum supported ICC I/O data */
-    0x00,                                      /* bNumDataRatesSupported : no setting from PC */
-    WBVAL(ABDATA_SIZE),                        /* dwMaxIFSD, B3-B2 */
-    0x00, 0x00,                                /* dwMaxIFSD, B1B0 */
-    0x00, 0x00, 0x00, 0x00,                    /* dwSynchProtocols  */
-    0x00, 0x00, 0x00, 0x00,                    /* dwMechanical: no special characteristics */
-    0xFE, 0x00, 0x04, 0x00,                    /* dwFeatures */
-    WBVAL(ABDATA_SIZE + CCID_CMD_HEADER_SIZE), /* dwMaxCCIDMessageLength, B3-B2 */
-    0x00, 0x00,                                /* dwMaxCCIDMessageLength, B1B0 */
-    0xFF,                                      /* bClassGetResponse*/
-    0xFF,                                      /* bClassEnvelope */
-    0x00, 0x00,                                /* wLcdLayout: 0000h no LCD */
-    0x00,                                      /* bPINSupport: no PIN */
-    CCID_NUMBER_OF_SLOTS,                      /* bMaxCCIDBusySlots*/
+    0x36,                                        /* bLength: CCID Descriptor size */
+    0x21,                                        /* bDescriptorType: Functional Descriptor type. */
+    0x10,                                        /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
+    0x01,                                        /* bcdCCID(MSB) */
+    CCID_NUMBER_OF_SLOTS - 1,                    /* bMaxSlotIndex: highest available slot on this device */
+    0x07,                                        /* bVoltageSupport: 5.0V/3.3V/1.8V*/
+    0x02, 0x00, 0x00, 0x00,                      /* dwProtocols: Protocol T=1 */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwDefaultClock: 4MHz */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwMaximumClock: 4MHz */
+    0x00,                                        /* bNumClockSupported : no setting from PC */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwDataRate: Default ICC I/O data rate */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwMaxDataRate: Maximum supported ICC I/O data */
+    0x00,                                        /* bNumDataRatesSupported : no setting from PC */
+    WBVAL(ABDATA_SIZE),                          /* dwMaxIFSD, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxIFSD, B1B0 */
+    0x00, 0x00, 0x00, 0x00,                      /* dwSynchProtocols  */
+    0x00, 0x00, 0x00, 0x00,                      /* dwMechanical: no special characteristics */
+    0xFE, 0x00, 0x04, 0x00,                      /* dwFeatures */
+    WBVAL((ABDATA_SIZE + CCID_CMD_HEADER_SIZE)), /* dwMaxCCIDMessageLength, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxCCIDMessageLength, B1B0 */
+    0xFF,                                        /* bClassGetResponse*/
+    0xFF,                                        /* bClassEnvelope */
+    0x00, 0x00,                                  /* wLcdLayout: 0000h no LCD */
+    0x00,                                        /* bPINSupport: no PIN */
+    CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     /************** Descriptor of CTAPHID interface ****************/
@@ -225,31 +227,31 @@ static const uint8_t config_descriptor_fs[] = {
     /************** Descriptor of CCID interface ****************/
     USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
-    0x36,                                      /* bLength: CCID Descriptor size */
-    0x21,                                      /* bDescriptorType: Functional Descriptor type. */
-    0x10,                                      /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
-    0x01,                                      /* bcdCCID(MSB) */
-    CCID_NUMBER_OF_SLOTS - 1,                  /* bMaxSlotIndex: highest available slot on this device */
-    0x07,                                      /* bVoltageSupport: 5.0V/3.3V/1.8V*/
-    0x02, 0x00, 0x00, 0x00,                    /* dwProtocols: Protocol T=1 */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwDefaultClock: 4MHz */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwMaximumClock: 4MHz */
-    0x00,                                      /* bNumClockSupported : no setting from PC */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwDataRate: Default ICC I/O data rate */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwMaxDataRate: Maximum supported ICC I/O data */
-    0x00,                                      /* bNumDataRatesSupported : no setting from PC */
-    WBVAL(ABDATA_SIZE),                        /* dwMaxIFSD, B3-B2 */
-    0x00, 0x00,                                /* dwMaxIFSD, B1B0 */
-    0x00, 0x00, 0x00, 0x00,                    /* dwSynchProtocols  */
-    0x00, 0x00, 0x00, 0x00,                    /* dwMechanical: no special characteristics */
-    0xFE, 0x00, 0x04, 0x00,                    /* dwFeatures */
-    WBVAL(ABDATA_SIZE + CCID_CMD_HEADER_SIZE), /* dwMaxCCIDMessageLength, B3-B2 */
-    0x00, 0x00,                                /* dwMaxCCIDMessageLength, B1B0 */
-    0xFF,                                      /* bClassGetResponse*/
-    0xFF,                                      /* bClassEnvelope */
-    0x00, 0x00,                                /* wLcdLayout: 0000h no LCD */
-    0x00,                                      /* bPINSupport: no PIN */
-    CCID_NUMBER_OF_SLOTS,                      /* bMaxCCIDBusySlots*/
+    0x36,                                        /* bLength: CCID Descriptor size */
+    0x21,                                        /* bDescriptorType: Functional Descriptor type. */
+    0x10,                                        /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
+    0x01,                                        /* bcdCCID(MSB) */
+    CCID_NUMBER_OF_SLOTS - 1,                    /* bMaxSlotIndex: highest available slot on this device */
+    0x07,                                        /* bVoltageSupport: 5.0V/3.3V/1.8V*/
+    0x02, 0x00, 0x00, 0x00,                      /* dwProtocols: Protocol T=1 */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwDefaultClock: 4MHz */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwMaximumClock: 4MHz */
+    0x00,                                        /* bNumClockSupported : no setting from PC */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwDataRate: Default ICC I/O data rate */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwMaxDataRate: Maximum supported ICC I/O data */
+    0x00,                                        /* bNumDataRatesSupported : no setting from PC */
+    WBVAL(ABDATA_SIZE),                          /* dwMaxIFSD, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxIFSD, B1B0 */
+    0x00, 0x00, 0x00, 0x00,                      /* dwSynchProtocols  */
+    0x00, 0x00, 0x00, 0x00,                      /* dwMechanical: no special characteristics */
+    0xFE, 0x00, 0x04, 0x00,                      /* dwFeatures */
+    WBVAL((ABDATA_SIZE + CCID_CMD_HEADER_SIZE)), /* dwMaxCCIDMessageLength, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxCCIDMessageLength, B1B0 */
+    0xFF,                                        /* bClassGetResponse*/
+    0xFF,                                        /* bClassEnvelope */
+    0x00, 0x00,                                  /* wLcdLayout: 0000h no LCD */
+    0x00,                                        /* bPINSupport: no PIN */
+    CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_FS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_FS, 0x00),
     /************** Descriptor of CTAPHID interface ****************/
@@ -270,31 +272,31 @@ static const uint8_t other_speed_config_descriptor_hs[] = {
     /************** Descriptor of CCID interface ****************/
     USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
-    0x36,                                      /* bLength: CCID Descriptor size */
-    0x21,                                      /* bDescriptorType: Functional Descriptor type. */
-    0x10,                                      /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
-    0x01,                                      /* bcdCCID(MSB) */
-    CCID_NUMBER_OF_SLOTS - 1,                  /* bMaxSlotIndex: highest available slot on this device */
-    0x07,                                      /* bVoltageSupport: 5.0V/3.3V/1.8V*/
-    0x02, 0x00, 0x00, 0x00,                    /* dwProtocols: Protocol T=1 */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwDefaultClock: 4MHz */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwMaximumClock: 4MHz */
-    0x00,                                      /* bNumClockSupported : no setting from PC */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwDataRate: Default ICC I/O data rate */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwMaxDataRate: Maximum supported ICC I/O data */
-    0x00,                                      /* bNumDataRatesSupported : no setting from PC */
-    WBVAL(ABDATA_SIZE),                        /* dwMaxIFSD, B3-B2 */
-    0x00, 0x00,                                /* dwMaxIFSD, B1B0 */
-    0x00, 0x00, 0x00, 0x00,                    /* dwSynchProtocols  */
-    0x00, 0x00, 0x00, 0x00,                    /* dwMechanical: no special characteristics */
-    0xFE, 0x00, 0x04, 0x00,                    /* dwFeatures */
-    WBVAL(ABDATA_SIZE + CCID_CMD_HEADER_SIZE), /* dwMaxCCIDMessageLength, B3-B2 */
-    0x00, 0x00,                                /* dwMaxCCIDMessageLength, B1B0 */
-    0xFF,                                      /* bClassGetResponse*/
-    0xFF,                                      /* bClassEnvelope */
-    0x00, 0x00,                                /* wLcdLayout: 0000h no LCD */
-    0x00,                                      /* bPINSupport: no PIN */
-    CCID_NUMBER_OF_SLOTS,                      /* bMaxCCIDBusySlots*/
+    0x36,                                        /* bLength: CCID Descriptor size */
+    0x21,                                        /* bDescriptorType: Functional Descriptor type. */
+    0x10,                                        /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
+    0x01,                                        /* bcdCCID(MSB) */
+    CCID_NUMBER_OF_SLOTS - 1,                    /* bMaxSlotIndex: highest available slot on this device */
+    0x07,                                        /* bVoltageSupport: 5.0V/3.3V/1.8V*/
+    0x02, 0x00, 0x00, 0x00,                      /* dwProtocols: Protocol T=1 */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwDefaultClock: 4MHz */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwMaximumClock: 4MHz */
+    0x00,                                        /* bNumClockSupported : no setting from PC */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwDataRate: Default ICC I/O data rate */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwMaxDataRate: Maximum supported ICC I/O data */
+    0x00,                                        /* bNumDataRatesSupported : no setting from PC */
+    WBVAL(ABDATA_SIZE),                          /* dwMaxIFSD, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxIFSD, B1B0 */
+    0x00, 0x00, 0x00, 0x00,                      /* dwSynchProtocols  */
+    0x00, 0x00, 0x00, 0x00,                      /* dwMechanical: no special characteristics */
+    0xFE, 0x00, 0x04, 0x00,                      /* dwFeatures */
+    WBVAL((ABDATA_SIZE + CCID_CMD_HEADER_SIZE)), /* dwMaxCCIDMessageLength, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxCCIDMessageLength, B1B0 */
+    0xFF,                                        /* bClassGetResponse*/
+    0xFF,                                        /* bClassEnvelope */
+    0x00, 0x00,                                  /* wLcdLayout: 0000h no LCD */
+    0x00,                                        /* bPINSupport: no PIN */
+    CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     /************** Descriptor of CTAPHID interface ****************/
@@ -311,31 +313,31 @@ static const uint8_t other_speed_config_descriptor_fs[] = {
     /************** Descriptor of CCID interface ****************/
     USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
-    0x36,                                      /* bLength: CCID Descriptor size */
-    0x21,                                      /* bDescriptorType: Functional Descriptor type. */
-    0x10,                                      /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
-    0x01,                                      /* bcdCCID(MSB) */
-    CCID_NUMBER_OF_SLOTS - 1,                  /* bMaxSlotIndex: highest available slot on this device */
-    0x07,                                      /* bVoltageSupport: 5.0V/3.3V/1.8V*/
-    0x02, 0x00, 0x00, 0x00,                    /* dwProtocols: Protocol T=1 */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwDefaultClock: 4MHz */
-    0xA0, 0x0F, 0x00, 0x00,                    /* dwMaximumClock: 4MHz */
-    0x00,                                      /* bNumClockSupported : no setting from PC */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwDataRate: Default ICC I/O data rate */
-    0x00, 0xB0, 0x04, 0x00,                    /* dwMaxDataRate: Maximum supported ICC I/O data */
-    0x00,                                      /* bNumDataRatesSupported : no setting from PC */
-    WBVAL(ABDATA_SIZE),                        /* dwMaxIFSD, B3-B2 */
-    0x00, 0x00,                                /* dwMaxIFSD, B1B0 */
-    0x00, 0x00, 0x00, 0x00,                    /* dwSynchProtocols  */
-    0x00, 0x00, 0x00, 0x00,                    /* dwMechanical: no special characteristics */
-    0xFE, 0x00, 0x04, 0x00,                    /* dwFeatures */
-    WBVAL(ABDATA_SIZE + CCID_CMD_HEADER_SIZE), /* dwMaxCCIDMessageLength, B3-B2 */
-    0x00, 0x00,                                /* dwMaxCCIDMessageLength, B1B0 */
-    0xFF,                                      /* bClassGetResponse*/
-    0xFF,                                      /* bClassEnvelope */
-    0x00, 0x00,                                /* wLcdLayout: 0000h no LCD */
-    0x00,                                      /* bPINSupport: no PIN */
-    CCID_NUMBER_OF_SLOTS,                      /* bMaxCCIDBusySlots*/
+    0x36,                                        /* bLength: CCID Descriptor size */
+    0x21,                                        /* bDescriptorType: Functional Descriptor type. */
+    0x10,                                        /* bcdCCID(LSB): CCID Class Spec release number (1.10) */
+    0x01,                                        /* bcdCCID(MSB) */
+    CCID_NUMBER_OF_SLOTS - 1,                    /* bMaxSlotIndex: highest available slot on this device */
+    0x07,                                        /* bVoltageSupport: 5.0V/3.3V/1.8V*/
+    0x02, 0x00, 0x00, 0x00,                      /* dwProtocols: Protocol T=1 */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwDefaultClock: 4MHz */
+    0xA0, 0x0F, 0x00, 0x00,                      /* dwMaximumClock: 4MHz */
+    0x00,                                        /* bNumClockSupported : no setting from PC */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwDataRate: Default ICC I/O data rate */
+    0x00, 0xB0, 0x04, 0x00,                      /* dwMaxDataRate: Maximum supported ICC I/O data */
+    0x00,                                        /* bNumDataRatesSupported : no setting from PC */
+    WBVAL(ABDATA_SIZE),                          /* dwMaxIFSD, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxIFSD, B1B0 */
+    0x00, 0x00, 0x00, 0x00,                      /* dwSynchProtocols  */
+    0x00, 0x00, 0x00, 0x00,                      /* dwMechanical: no special characteristics */
+    0xFE, 0x00, 0x04, 0x00,                      /* dwFeatures */
+    WBVAL((ABDATA_SIZE + CCID_CMD_HEADER_SIZE)), /* dwMaxCCIDMessageLength, B3-B2 */
+    0x00, 0x00,                                  /* dwMaxCCIDMessageLength, B1B0 */
+    0xFF,                                        /* bClassGetResponse*/
+    0xFF,                                        /* bClassEnvelope */
+    0x00, 0x00,                                  /* wLcdLayout: 0000h no LCD */
+    0x00,                                        /* bPINSupport: no PIN */
+    CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_FS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_FS, 0x00),
     /************** Descriptor of CTAPHID interface ****************/
@@ -489,16 +491,13 @@ static const uint8_t hid_keyboardhid_report_desc[HID_KBDHID_REPORT_DESC_SIZE] = 
     0xC0,             // End Collection
 };
 
-static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ccid_buffer[512];
-static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ctaphid_buffer[512];
-static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t kbdhid_buffer[8];
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ccid_buffer[CCID_EP_MPS_HS];
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ctaphid_buffer[CTAPHID_EP_MPS_HS];
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t kbdhid_buffer[KBDHID_INT_EP_SIZE];
 
-#define PIPE_STATE_IDLE 0
-#define PIPE_STATE_BUSY 1
-
-static volatile uint8_t ccid_state = PIPE_STATE_IDLE;
-static volatile uint8_t ctaphid_state = PIPE_STATE_IDLE;
-static volatile uint8_t kbdhid_state = PIPE_STATE_IDLE;
+static volatile uint8_t ccid_state;
+static volatile uint8_t ctaphid_state;
+static volatile uint8_t kbdhid_state;
 
 static void usbd_event_handler(uint8_t busid, uint8_t event)
 {
@@ -515,12 +514,15 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     case USBD_EVENT_SUSPEND:
         break;
     case USBD_EVENT_CONFIGURED:
-        ccid_state = PIPE_STATE_IDLE;
-        ctaphid_state = PIPE_STATE_IDLE;
-        kbdhid_state = PIPE_STATE_IDLE;
+        ccid_state = CCID_STATE_IDLE;
+        ctaphid_state = CTAPHID_IDLE;
+        kbdhid_state = KBDHID_IDLE;
         /* setup first out ep read transfer */
         usbd_ep_start_read(busid, CCID_OUT_EP, ccid_buffer, usbd_get_ep_mps(busid, CCID_OUT_EP));
         usbd_ep_start_read(busid, CTAPHID_OUT_EP, ctaphid_buffer, usbd_get_ep_mps(busid, CTAPHID_OUT_EP));
+        CCID_Init();
+        CTAPHID_Init();
+        KBDHID_Init();
         break;
     case USBD_EVENT_SET_REMOTE_WAKEUP:
         break;
@@ -535,26 +537,51 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
 // CCID
 void usbd_ccid_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
+    CCID_OutEvent(ccid_buffer, nbytes);
+    /* setup next out ep read transfer */
+    usbd_ep_start_read(busid, ep, ccid_buffer, usbd_get_ep_mps(busid, CCID_OUT_EP));
     // USB_LOG_RAW("actual out len:%d\r\n", nbytes);
-
-    // usbd_ep_start_write(busid, WINUSB_IN_EP, read_buffer, nbytes);
-    // /* setup next out ep read transfer */
-    // usbd_ep_start_read(busid, ep, read_buffer, 2048);
 }
 
 void usbd_ccid_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
+    if (ccid_state == CCID_STATE_DATA_IN_WITH_ZLP)
+    {
+        ccid_state = CCID_STATE_DATA_IN;
+        /* send zlp */
+        usbd_ep_start_write(busid, ep, NULL, 0);
+    }
+    else
+    {
+        CCID_InFinished(ccid_state == CCID_STATE_DATA_IN_TIME_EXTENSION);
+        ccid_state = CCID_STATE_IDLE;
+    }
     // USB_LOG_RAW("actual in len:%d\r\n", nbytes);
+}
 
-    // if ((nbytes % usbd_get_ep_mps(busid, ep)) == 0 && nbytes)
-    // {
-    //     /* send zlp */
-    //     usbd_ep_start_write(busid, ep, NULL, 0);
-    // }
-    // else
-    // {
-    //     ccid_state = PIPE_STATE_IDLE;
-    // }
+uint8_t CCID_Response_SendData(uint8_t busid, const uint8_t *buf, uint16_t len, uint8_t is_time_extension_request)
+{
+    uint8_t ret = 0;
+
+    int retry = 0;
+    while (ccid_state != CCID_STATE_IDLE)
+    {
+        if (is_time_extension_request)
+            return ret;
+        else if (++retry > 50)
+            return 1;
+        else
+            device_delay(1);
+    }
+    uint16_t ep_size = usbd_get_ep_mps(busid, CCID_IN_EP);
+    if (is_time_extension_request)
+        ccid_state = CCID_STATE_DATA_IN_TIME_EXTENSION;
+    else
+        ccid_state = len % ep_size == 0 ? CCID_STATE_DATA_IN_WITH_ZLP : CCID_STATE_DATA_IN;
+    memcpy(ccid_buffer, buf, len);
+    ret = usbd_ep_start_write(busid, CCID_IN_EP, ccid_buffer, len);
+
+    return ret;
 }
 
 struct usbd_endpoint ccid_out_ep = {
@@ -573,24 +600,42 @@ static void usbd_hid_ctaphid_in_callback(uint8_t busid, uint8_t ep, uint32_t nby
     (void)ep;
 
     // USB_LOG_RAW("actual in len:%d\r\n", nbytes);
-    ctaphid_state = PIPE_STATE_IDLE;
+    ctaphid_state = CTAPHID_IDLE;
 }
 
 static void usbd_hid_ctaphid_out_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
     // USB_LOG_RAW("actual out len:%d\r\n", nbytes);
+    CTAPHID_OutEvent(ctaphid_buffer);
+    usbd_ep_start_read(busid, ep, ctaphid_buffer, usbd_get_ep_mps(busid, CTAPHID_OUT_EP));
+
     // usbd_ep_start_read(busid, ep, read_buffer, HID_REPORT_CNT);
     // read_buffer[0] = 0x02; /* IN: report id */
     // usbd_ep_start_write(busid, HIDRAW_IN_EP, read_buffer, nbytes);
 }
 
+uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
+{
+    int retry = 0;
+    while (ctaphid_state != CTAPHID_IDLE)
+    {
+        // if reports are not being processed on host, we may get stuck here
+        if (++retry > 50)
+            return 1;
+        device_delay(1);
+    }
+    ctaphid_state = CTAPHID_BUSY;
+    memcpy(ctaphid_buffer, report, len);
+    return usbd_ep_start_write(busid, CTAPHID_IN_EP, ctaphid_buffer, len);
+}
+
 static struct usbd_endpoint ctaphid_in_ep = {
     .ep_cb = usbd_hid_ctaphid_in_callback,
-    .ep_addr = HIDRAW_IN_EP};
+    .ep_addr = CTAPHID_IN_EP};
 
 static struct usbd_endpoint ctaphid_out_ep = {
     .ep_cb = usbd_hid_ctaphid_out_callback,
-    .ep_addr = HIDRAW_OUT_EP};
+    .ep_addr = CTAPHID_OUT_EP};
 
 struct usbd_interface ctaphidintf;
 
@@ -599,7 +644,27 @@ void usbd_kbdhid_int_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
     (void)busid;
     (void)ep;
     (void)nbytes;
-    kbdhid_state = PIPE_STATE_IDLE;
+    kbdhid_state = KBDHID_IDLE;
+}
+
+uint8_t USBD_KBDHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
+{
+    int retry = 0;
+    while (kbdhid_state != KBDHID_IDLE)
+    {
+        // if reports are not being processed on host, we may get stuck here
+        if (++retry > 50)
+            return 1;
+        device_delay(1);
+    }
+    kbdhid_state = KBDHID_BUSY;
+    memcpy(kbdhid_buffer, report, len);
+    return usbd_ep_start_write(busid, KBDHID_INT_EP, kbdhid_buffer, len);
+}
+
+uint8_t USBD_KBDHID_IsIdle()
+{
+    return kbdhid_state == KBDHID_IDLE;
 }
 
 static struct usbd_endpoint kbdhid_in_ep = {
@@ -608,40 +673,9 @@ static struct usbd_endpoint kbdhid_in_ep = {
 
 struct usbd_interface kbdintf;
 
-static int webusb_class_interface_request_handler(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len)
-{
-    (void)busid;
-    (void)data;
-    (void)len;
-
-    USB_LOG_DBG("Vendor Class request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
-
-    switch (setup->bRequest)
-    {
-        // case 0x22:
-        //     if (setup->wValue != 0)
-        //     {
-        //         // board_led_write(!board_get_led_gpio_off_level());
-        //     }
-        //     else
-        //     {
-        //         // board_led_write(board_get_led_gpio_off_level());
-        //     }
-        //     break;
-
-    default:
-        USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
-        return -1;
-    }
-
-    return 0;
-}
-
 struct usbd_interface webusbintf;
 
-void webusb_init(uint8_t busid, uintptr_t reg_base)
+void canokey_init(uint8_t busid, uintptr_t reg_base)
 {
     usbd_desc_register(busid, &canokey_descriptor);
 
@@ -656,7 +690,7 @@ void webusb_init(uint8_t busid, uintptr_t reg_base)
     usbd_add_interface(busid, usbd_hid_init_intf(busid, &kbdintf, hid_keyboardhid_report_desc, HID_KBDHID_REPORT_DESC_SIZE));
     usbd_add_endpoint(busid, &kbdhid_in_ep);
 
-    webusbintf.class_interface_handler = webusb_class_interface_request_handler;
+    webusbintf.class_interface_handler = USBD_WEBUSB_Setup;
     usbd_add_interface(busid, &webusbintf);
 
     usbd_initialize(busid, reg_base, usbd_event_handler);

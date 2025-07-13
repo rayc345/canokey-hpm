@@ -4,8 +4,7 @@
 #include <ccid.h>
 #include <common.h>
 #include <device.h>
-#include <usb_device.h>
-#include <usbd_ccid.h>
+#include "usbd.h"
 
 #define CCID_UpdateCommandStatus(cmd_status, icc_status) bulkin_short.bStatus = bulkin_data.bStatus = (cmd_status | icc_status)
 #define CCID_CardStatus() (bulkin_short.bStatus & BM_ICC_STATUS_MASK)
@@ -395,7 +394,7 @@ void CCID_Loop(void) {
   uint16_t len = pBulkin->dwLength;
   pBulkin->dwLength = htole32(pBulkin->dwLength);
   device_spinlock_lock(&send_data_spinlock, true);
-  CCID_Response_SendData(&usb_device, (uint8_t *)pBulkin, len + CCID_CMD_HEADER_SIZE, 0);
+  CCID_Response_SendData(0, (uint8_t *)pBulkin, len + CCID_CMD_HEADER_SIZE, 0);
   device_spinlock_unlock(&send_data_spinlock);
   has_cmd = 0;
 }
@@ -422,7 +421,7 @@ void CCID_TimeExtensionLoop(void) {
     bulkin_time_extension.bStatus = BM_COMMAND_STATUS_TIME_EXTN;
     bulkin_time_extension.bError = 1; // Request another 1 BTWs (5.7s)
     bulkin_time_extension.bSpecific = 0;
-    CCID_Response_SendData(&usb_device, (uint8_t *)&bulkin_time_extension, CCID_CMD_HEADER_SIZE, 1);
+    CCID_Response_SendData(0, (uint8_t *)&bulkin_time_extension, CCID_CMD_HEADER_SIZE, 1);
     device_spinlock_unlock(&send_data_spinlock);
   }
 

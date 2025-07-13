@@ -42,7 +42,6 @@ void device_delay(int ms)
   board_delay_ms(ms);
 }
 
-
 void device_set_timeout(void (*callback)(void), uint16_t timeout)
 {
   board_timer_create(timeout, callback);
@@ -110,4 +109,50 @@ void device_periodic_task(void)
     break;
   }
   device_update_led();
+}
+
+int device_spinlock_lock(volatile uint32_t *lock, uint32_t blocking)
+{
+  // Not really working, for test only
+  while (*lock)
+  {
+    if (!blocking)
+    {
+      return -1;
+    }
+  }
+  *lock = 1;
+  return 0;
+}
+
+void device_spinlock_unlock(volatile uint32_t *lock)
+{
+  *lock = 0;
+}
+
+int device_atomic_compare_and_swap(volatile uint32_t *var, uint32_t expect, uint32_t update)
+{
+  if (*var == expect)
+  {
+    *var = update;
+    return 0;
+  }
+  else
+  {
+    return -1;
+  }
+
+  // register unsigned int ret;
+  // register unsigned int __rc;
+  // __asm__ __volatile__(
+  //     "0: lr.w %0, %2\n"
+  //     "   bne  %0, %z3, 1f\n"
+  //     "   sc.w.rl %1, %z4, %2\n"
+  //     "   bnez %1, 0b\n"
+  //     "   fence rw, rw\n"
+  //     "1:\n"
+  //     : "=&r"(ret), "=&r"(__rc), "+A"(*var)
+  //     : "rJ"((long)expect), "rJ"(update)
+  //     : "memory");
+  // return ret;
 }

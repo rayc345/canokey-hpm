@@ -3,7 +3,7 @@
 #include <common.h>
 #include <device.h>
 #include <ecc.h>
-#include <key.h>
+#include <pgp_key.h>
 #include <memzero.h>
 #include <openpgp.h>
 #include <pin.h>

@@ -3,9 +3,8 @@
 #include <common.h>
 #include <device.h>
 #include <kbdhid.h>
+#include <usbd.h>
 #include <pass.h>
-#include <usb_device.h>
-#include <usbd_kbdhid.h>
 
 #define EJECT_KEY 0x03
 
@@ -88,7 +87,7 @@ static void KBDHID_TypeKeySeq(void) {
         report.id = 2;
         report.modifier = 0xB8;
         // Emulate the key press
-        USBD_KBDHID_SendReport(&usb_device, (uint8_t *)&report, 2);
+        USBD_KBDHID_SendReport(0, (uint8_t *)&report, 2);
       } else {
         uint8_t keycode = ascii2keycode(key_sequence[key_seq_position]);
         if (keycode & 0x80) { // Check for shift flag
@@ -100,7 +99,7 @@ static void KBDHID_TypeKeySeq(void) {
         report.keycode[0] = keycode;
         report.id = 1;
         // Emulate the key press
-        USBD_KBDHID_SendReport(&usb_device, (uint8_t *) &report, sizeof(report));
+        USBD_KBDHID_SendReport(0, (uint8_t *) &report, sizeof(report));
       }
       state = KBDHID_KeyDown;
     }
@@ -112,11 +111,11 @@ static void KBDHID_TypeKeySeq(void) {
         if (key_sequence[key_seq_position] == EJECT_KEY) {
           report.id = 2;
           // Emulate the key release
-          USBD_KBDHID_SendReport(&usb_device, (uint8_t *)&report, 2);
+          USBD_KBDHID_SendReport(0, (uint8_t *)&report, 2);
         } else {
           report.id = 1;
           // Emulate the key release
-          USBD_KBDHID_SendReport(&usb_device, (uint8_t *) &report, sizeof(report));
+          USBD_KBDHID_SendReport(0, (uint8_t *) &report, sizeof(report));
         }
       key_seq_position++;
       state = KBDHID_KeyUp;

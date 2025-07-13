@@ -24,6 +24,14 @@ sdk_compile_options(-fno-inline)
 
 sdk_ses_opt_lib_io_type(RTT)
 
+# LittleFS
+sdk_app_inc(src/3rd_party/littlefs)
+sdk_app_inc(src/3rd_party/littlefs/port)
+sdk_app_src(src/3rd_party/littlefs/lfs_util.c)
+sdk_app_src(src/3rd_party/littlefs/lfs.c)
+sdk_app_src(src/3rd_party/littlefs/port/hpm_flash.c)
+sdk_app_src(src/3rd_party/littlefs/port/lfs_port.c)
+
 # tinycbor
 sdk_app_inc(src/3rd_party/tinycbor)
 sdk_app_src(src/3rd_party/tinycbor/cborencoder.c)
@@ -38,22 +46,6 @@ sdk_app_src(src/3rd_party/tinycbor/cborpretty_stdio.c)
 sdk_app_src(src/3rd_party/tinycbor/cbortojson.c)
 sdk_app_src(src/3rd_party/tinycbor/cborvalidation.c)
 # sdk_app_src(src/3rd_party/tinycbor/open_memstream.c)
-
-# Canokey-crypto
-sdk_app_inc(src/canokey-crypto/include)
-sdk_app_src(src/canokey-crypto/src/aes.c)
-sdk_app_src(src/canokey-crypto/src/algo.c)
-sdk_app_src(src/canokey-crypto/src/block-cipher.c)
-sdk_app_src(src/canokey-crypto/src/crypto-util.c)
-sdk_app_src(src/canokey-crypto/src/des.c)
-sdk_app_src(src/canokey-crypto/src/ecc.c)
-sdk_app_src(src/canokey-crypto/src/hmac.c)
-sdk_app_src(src/canokey-crypto/src/memzero.c)
-sdk_app_src(src/canokey-crypto/src/rand.c)
-sdk_app_src(src/canokey-crypto/src/rsa.c)
-sdk_app_src(src/canokey-crypto/src/sha.c)
-sdk_app_src(src/canokey-crypto/src/sha3.c)
-sdk_app_src(src/canokey-crypto/src/sm3.c)
 
 # Canokey-core
 sdk_app_inc(src/canokey-core/applets/admin)
@@ -85,17 +77,16 @@ sdk_app_inc(src/canokey-core/interfaces/USB/class/kbdhid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/webusb)
 sdk_app_inc(src/canokey-core/interfaces/USB/device)
 
-
 sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid.c)
-# sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/usbd_ccid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid.c)
-# sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/usbd_ctaphid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/kbdhid.c)
-# sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/usbd_kbdhid.c)
-# sdk_app_src(src/canokey-core/interfaces/USB/class/webusb/webusb.c)
-
-# sdk_app_src(src/canokey-core/interfaces/USB/device/usb_descriptors.c)
+sdk_app_src(src/canokey-core/interfaces/USB/class/webusb/webusb.c)
 sdk_app_src(src/canokey-core/interfaces/USB/device/usbd.c)
+
+# sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/usbd_ccid.c)
+# sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/usbd_ctaphid.c)
+# sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/usbd_kbdhid.c)
+# sdk_app_src(src/canokey-core/interfaces/USB/device/usb_descriptors.c)
 
 sdk_app_inc(src/canokey-core/include)
 sdk_app_src(src/canokey-core/src/apdu.c)
@@ -103,14 +94,24 @@ sdk_app_src(src/canokey-core/src/applets.c)
 sdk_app_src(src/canokey-core/src/common.c)
 sdk_app_src(src/canokey-core/src/device.c)
 sdk_app_src(src/canokey-core/src/fs.c)
+sdk_app_src(src/canokey-core/src/key.c)
+sdk_app_src(src/canokey-core/src/pin.c)
 
-# LittleFS
-sdk_app_inc(src/3rd_party/littlefs)
-sdk_app_src(src/3rd_party/littlefs/lfs_util.c)
-sdk_app_src(src/3rd_party/littlefs/lfs.c)
-sdk_app_inc(src/3rd_party/littlefs/port)
-sdk_app_src(src/3rd_party/littlefs/port/lfs_port.c)
-sdk_app_src(src/3rd_party/littlefs/port/hpm_flash.c)
+# Canokey-crypto
+sdk_app_inc(src/canokey-crypto/include)
+sdk_app_src(src/canokey-crypto/src/aes.c)
+sdk_app_src(src/canokey-crypto/src/algo.c)
+sdk_app_src(src/canokey-crypto/src/block-cipher.c)
+sdk_app_src(src/canokey-crypto/src/crypto-util.c)
+sdk_app_src(src/canokey-crypto/src/des.c)
+sdk_app_src(src/canokey-crypto/src/ecc.c)
+sdk_app_src(src/canokey-crypto/src/hmac.c)
+sdk_app_src(src/canokey-crypto/src/memzero.c)
+sdk_app_src(src/canokey-crypto/src/rand.c)
+sdk_app_src(src/canokey-crypto/src/rsa.c)
+sdk_app_src(src/canokey-crypto/src/sha.c)
+sdk_app_src(src/canokey-crypto/src/sha3.c)
+sdk_app_src(src/canokey-crypto/src/sm3.c)
 
 # Main
 sdk_app_inc(inc)

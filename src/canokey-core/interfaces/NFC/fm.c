@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "device.h"
 #include <stdint.h>
+#include "hpm_clock_drv.h"
 
 #define I2C_WRITE_WITH_CHECK(data)                                     \
   do {                                                                 \
@@ -8,8 +9,7 @@
   } while (0)
 
 static void device_delay_us(int us) {
-  for (int i = 0; i < us * 10; ++i)
-    asm volatile("nop");
+  clock_cpu_delay_us(us);
 }
 
 fm_status_t fm_read_regs(uint16_t reg, uint8_t *buf, uint8_t len) {
