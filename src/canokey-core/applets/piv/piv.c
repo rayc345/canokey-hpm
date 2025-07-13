@@ -991,7 +991,7 @@ static int piv_get_metadata(const CAPDU *capdu, RAPDU *rapdu) {
     case 0x81:  // PUK
     {
       const pin_t *p = P2 == 0x80 ? &pin : &puk;
-      uint8_t default_value;
+      int8_t default_value;
       if (read_attr(p->path, TAG_PIN_KEY_DEFAULT, &default_value, 1) < 0) return -1;
       const int default_retries = pin_get_default_retries(p);
       if (default_value < 0) return -1;

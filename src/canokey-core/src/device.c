@@ -7,20 +7,20 @@
 #include <kbdhid.h>
 #include <webusb.h>
 
-volatile static uint8_t touch_result;
+static volatile uint8_t touch_result;
 static uint8_t has_rf;
 static uint32_t last_blink, blink_timeout, blink_interval;
 static enum { ON, OFF } led_status;
 typedef enum { WAIT_NONE = 1, WAIT_CCID, WAIT_CTAPHID, WAIT_DEEP, WAIT_DEEP_TOUCHED, WAIT_DEEP_CANCEL } wait_status_t;
-volatile static wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, hence inited
+static volatile wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, hence inited
 
 uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 
 void device_loop(void) {
-  CCID_Loop();
+  // CCID_Loop();
   CTAPHID_Loop(0);
-  WebUSB_Loop();
-  KBDHID_Loop();
+  // WebUSB_Loop();
+  // KBDHID_Loop();
 }
 
 bool device_allow_kbd_touch(void) {
@@ -69,7 +69,7 @@ uint8_t wait_for_user_presence(uint8_t entry) {
     // Keep blinking, in case other applet stops it 
     start_blinking(0);
     // Nested CCID processing is not allowed
-    if (entry != WAIT_ENTRY_CCID) CCID_Loop();
+    // if (entry != WAIT_ENTRY_CCID) CCID_Loop();
     if (CTAPHID_Loop(entry == WAIT_ENTRY_CTAPHID) == LOOP_CANCEL) {
       DBG_MSG("Cancelled by host\n");
       stop_blinking();
@@ -167,13 +167,13 @@ void start_blinking_interval(uint8_t sec, uint32_t interval) {
 
 void stop_blinking(void) {
   blink_timeout = 0;
-  if (cfg_is_led_normally_on()) {
+  // if (cfg_is_led_normally_on()) {
     led_on();
     led_status = ON;
-  } else {
-    led_off();
-    led_status = OFF;
-  }
+  // } else {
+  //   led_off();
+  //   led_status = OFF;
+  // }
 }
 
 void device_init(void) {

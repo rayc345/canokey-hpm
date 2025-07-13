@@ -29,7 +29,7 @@ uint8_t USBD_WEBUSB_Init(uint8_t busid) {
 }
 
 
-int8_t USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
+int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
     (void)busid;
     (void)data;
     (void)len;

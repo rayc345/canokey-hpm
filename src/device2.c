@@ -111,48 +111,61 @@ void device_periodic_task(void)
   device_update_led();
 }
 
+// .globl lrsc_ins
+// #a0内存地址
+// #a1预期值
+// #a2所需值
+// #a0返回值，如果成功，则为0！否则为1
+// lrsc_ins:
+// cas:
+//     lr.w t0，(a0)       #加载以前的值
+//     bne t0，a1，fail    #不相等则跳转到fail
+//     sc.w a0，a2，(a0)   #尝试更新
+//     jr ra               #返回
+// fail:
+//     li a0，1            #a0 = 1
+//     jr ra               #返回
+
+int device_atomic_compare_and_swap(volatile uint32_t *var, uint32_t expect, uint32_t update)
+{
+  register unsigned int ret;
+  register unsigned int __rc;
+  __asm__ __volatile__(
+      "0: lr.w %0, %2\n"
+      "   bne  %0, %z3, 1f\n"
+      "   sc.w.rl %1, %z4, %2\n"
+      "   bnez %1, 0b\n"
+      "   fence rw, rw\n"
+      "1:\n"
+      : "=&r"(ret), "=&r"(__rc), "+A"(*var)
+      : "rJ"((long)expect), "rJ"(update)
+      : "memory");
+  return ret;
+}
+
 int device_spinlock_lock(volatile uint32_t *lock, uint32_t blocking)
 {
-  // Not really working, for test only
-  while (*lock)
+  int status;
+  do
   {
-    if (!blocking)
-    {
-      return -1;
-    }
+    status = device_atomic_compare_and_swap(lock, 0, 1);
+  } while (blocking && status != 0);
+  if (status == 0)
+  {
+    return 0; // 加锁成功
   }
-  *lock = 1;
-  return 0;
+  return -1; // 加锁失败
 }
 
 void device_spinlock_unlock(volatile uint32_t *lock)
 {
-  *lock = 0;
-}
-
-int device_atomic_compare_and_swap(volatile uint32_t *var, uint32_t expect, uint32_t update)
-{
-  if (*var == expect)
-  {
-    *var = update;
-    return 0;
-  }
-  else
-  {
-    return -1;
-  }
-
-  // register unsigned int ret;
-  // register unsigned int __rc;
-  // __asm__ __volatile__(
-  //     "0: lr.w %0, %2\n"
-  //     "   bne  %0, %z3, 1f\n"
-  //     "   sc.w.rl %1, %z4, %2\n"
-  //     "   bnez %1, 0b\n"
-  //     "   fence rw, rw\n"
-  //     "1:\n"
-  //     : "=&r"(ret), "=&r"(__rc), "+A"(*var)
-  //     : "rJ"((long)expect), "rJ"(update)
-  //     : "memory");
-  // return ret;
+  device_atomic_compare_and_swap(lock, 1, 0);
+  // *lock = 0;
+  // int status;
+  // status = device_atomic_compare_and_swap(lock, 1, 0);
+  // if (status == 0)
+  // {
+  //   return 1; // 解锁成功
+  // }
+  // return 0; // 解锁失败
 }

@@ -49,7 +49,7 @@ int ndef_toggle_read_only(const CAPDU *capdu, RAPDU *rapdu) {
   return 0;
 }
 
-int ndef_create_init_ndef() {
+int ndef_create_init_ndef(void) {
   const char *init_data = "\x00\x11\xD1\x01\x0D\x55\x04""canokeys.org";
   if (write_file(NDEF_FILE, init_data, 0, 19, 1) < -1) return -1;
   if (truncate_file(NDEF_FILE, NDEF_FILE_MAX_LENGTH) < -1) return -1; // Fill the file with zeros

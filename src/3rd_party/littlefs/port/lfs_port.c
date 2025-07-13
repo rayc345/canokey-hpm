@@ -2,14 +2,20 @@
 #include <stdalign.h>
 #include <string.h>
 #include "board.h"
-#include "hpm_clock_drv.h"
-#include "hpm_l1c_drv.h"
 #include "lfs.h"
 #include "hpm_flash.h"
 #include "fs.h"
+#include <ndef.h>
+#include <oath.h>
+#include <openpgp.h>
+#include <pass.h>
+#include <pin.h>
+#include <piv.h>
+#include <admin.h>
+#include <ctap.h>
 
 #define READ_SIZE 32
-#define STORAGE_SECTOR 20
+#define STORAGE_SECTOR 40
 #define FLASH_ADDR(b, o) (nor_config.base_addr + (b) * nor_config.sector_size + (o))
 #define LOOKAHEAD_SIZE 512
 
@@ -44,7 +50,6 @@ int block_sync(const struct lfs_config *c)
   return 0;
 }
 
-extern uint8_t ctap_install(uint8_t reset);
 void littlefs_init(void)
 {
   nor_config.xpi_base = BOARD_APP_XPI_NOR_XPI_BASE;
@@ -80,18 +85,26 @@ void littlefs_init(void)
   config.lookahead_buffer = lookahead_buffer;
 
   // mount the filesystem
-  int err = fs_mount(&config);
+  int err;
+  // int err = fs_mount(&config);
 
   // reformat if we can't mount the filesystem
   // this should only happen on the first boot
-  if (err)
+  // if (err)
   {
     printf("Mount Failed, formatting\n");
     err = fs_format(&config);
     printf("Formatting %02X\n", err);
     err = fs_mount(&config);
     printf("Remount %02X\n", err);
+    //openpgp_install(1);
+    //piv_install(1);
+    //oath_install(1);
     ctap_install(1);
+    //ndef_install(1);
+    //pass_install(1);
+    //admin_install(1);
+
   }
 
   return;
