@@ -58,7 +58,7 @@ int main(void)
 
     while (1)
     {
-        device_loop(); /* tinyusb device task */
+        device_loop();
     }
 
     return 0;

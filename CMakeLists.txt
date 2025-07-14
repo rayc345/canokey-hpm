@@ -22,7 +22,7 @@ sdk_compile_definitions(FLT16_MANT_DIG=0)
 
 sdk_compile_options(-fno-inline)
 
-sdk_ses_opt_lib_io_type(RTT)
+# sdk_ses_opt_lib_io_type(RTT)
 
 # LittleFS
 sdk_app_inc(src/3rd_party/littlefs)

@@ -15,7 +15,6 @@ int ck_encode_public_key(ck_key_t *key, uint8_t *buf, bool include_length) {
   case SECP256R1:
   case SECP256K1:
   case SECP384R1:
-  case SM2:
     if (include_length) {
       buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type] + 3; // tag, length, and 0x04
     }
@@ -23,20 +22,6 @@ int ck_encode_public_key(ck_key_t *key, uint8_t *buf, bool include_length) {
     buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type] + 1; // 0x04
     buf[off++] = 0x04;
     memcpy(&buf[off], key->ecc.pub, PUBLIC_KEY_LENGTH[key->meta.type]);
-    off += PUBLIC_KEY_LENGTH[key->meta.type];
-    break;
-
-  case ED25519:
-  case X25519:
-    if (include_length) {
-      buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type] + 2; // tag, length
-    }
-    buf[off++] = 0x86;
-    buf[off++] = PUBLIC_KEY_LENGTH[key->meta.type];
-    memcpy(&buf[off], key->ecc.pub, PUBLIC_KEY_LENGTH[key->meta.type]);
-    if (key->meta.type == X25519) {
-      swap_big_number_endian(&buf[off]); // Public key of x25519 is encoded in little endian
-    }
     off += PUBLIC_KEY_LENGTH[key->meta.type];
     break;
 
@@ -117,16 +102,13 @@ int ck_parse_piv(ck_key_t *key, const uint8_t *buf, size_t buf_len) {
   switch (key->meta.type) {
   case SECP256R1:
   case SECP256K1:
-  case SECP384R1:
-  case SM2:
-  case ED25519:
-  case X25519: {
+  case SECP384R1: {
 
     if (buf_len < PRIVATE_KEY_LENGTH[key->meta.type] + 2) {
       DBG_MSG("too short\n");
       return KEY_ERR_LENGTH;
     }
-    if (*p != 0x06 && !(key->meta.type == ED25519 && *p == 0x07) && !(key->meta.type == X25519 && *p == 0x08)) {
+    if (*p != 0x06) {
       DBG_MSG("invalid tag\n");
       return KEY_ERR_DATA;
     }
@@ -136,9 +118,6 @@ int ck_parse_piv(ck_key_t *key, const uint8_t *buf, size_t buf_len) {
       return KEY_ERR_LENGTH;
     }
     memcpy(key->ecc.pri, p, PRIVATE_KEY_LENGTH[key->meta.type]);
-    if (key->meta.type == X25519) {
-      swap_big_number_endian(key->ecc.pri); // Private key of x25519 is encoded in little endian
-    }
     if (!ecc_verify_private_key(key->meta.type, &key->ecc)) {
       memzero(key, sizeof(ck_key_t));
       return KEY_ERR_DATA;
@@ -225,10 +204,7 @@ int ck_parse_openpgp(ck_key_t *key, const uint8_t *buf, size_t buf_len) {
   switch (key->meta.type) {
   case SECP256R1:
   case SECP256K1:
-  case SECP384R1:
-  case SM2:
-  case ED25519:
-  case X25519: {
+  case SECP384R1: {
     if ((size_t)(p + 1 - buf) >= buf_len) return KEY_ERR_LENGTH;
     if (*p++ != 0x92) return KEY_ERR_DATA;
     const size_t data_pri_key_len = tlv_get_length_safe(p, buf_len - (p - buf), &fail, &length_size);

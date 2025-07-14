@@ -60,8 +60,6 @@ static const uint8_t aaguid[] = {0x24, 0x4e, 0xb2, 0x9e, 0xe0, 0x90, 0x4e, 0x49,
 static uint8_t consecutive_pin_counter, last_cmd;
 // source of APDU in process 
 static ctap_src_t current_cmd_src;
-// SM2 attr
-CTAP_sm2_attr ctap_sm2_attr;
 
 uint8_t ctap_install(uint8_t reset) {
   consecutive_pin_counter = 3;
@@ -69,7 +67,6 @@ uint8_t ctap_install(uint8_t reset) {
   current_cmd_src = CTAP_SRC_NONE;
   cp_initialize();
   if (!reset && get_file_size(LB_FILE) >= 0) {
-    if (read_attr(CTAP_CERT_FILE, SM2_ATTR, &ctap_sm2_attr, sizeof(ctap_sm2_attr)) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
     DBG_MSG("CTAP initialized\n");
     return 0;
   }
@@ -91,36 +88,6 @@ uint8_t ctap_install(uint8_t reset) {
   memzero(kh_key, sizeof(kh_key));
   DBG_MSG("CTAP reset and initialized\n");
   return 0;
-}
-
-int ctap_install_private_key(const CAPDU *capdu, RAPDU *rapdu) {
-  if (LC != PRI_KEY_SIZE) EXCEPT(SW_WRONG_LENGTH);
-  // initialize SM2 config
-  ctap_sm2_attr.enabled = 0;
-  ctap_sm2_attr.curve_id = 9; // An unused one. See https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
-  ctap_sm2_attr.algo_id = -48; // An unused one. See https://www.iana.org/assignments/cose/cose.xhtml#algorithms
-  if (write_attr(CTAP_CERT_FILE, SM2_ATTR, &ctap_sm2_attr, sizeof(ctap_sm2_attr)) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
-  return write_attr(CTAP_CERT_FILE, KEY_ATTR, DATA, LC);
-}
-
-int ctap_install_cert(const CAPDU *capdu, RAPDU *rapdu) {
-  if (LC > MAX_CERT_SIZE) EXCEPT(SW_WRONG_LENGTH);
-  return write_file(CTAP_CERT_FILE, DATA, 0, LC, 1);
-}
-
-int ctap_read_sm2_config(const CAPDU *capdu, RAPDU *rapdu) {
-  UNUSED(capdu);
-  const int ret = read_attr(CTAP_CERT_FILE, SM2_ATTR, RDATA, sizeof(ctap_sm2_attr));
-  if (ret < 0) return ret;
-  LL = ret;
-  return 0;
-}
-
-int ctap_write_sm2_config(const CAPDU *capdu, RAPDU *rapdu) {
-  if (LC != sizeof(ctap_sm2_attr)) EXCEPT(SW_WRONG_LENGTH);
-  const int ret = write_attr(CTAP_CERT_FILE, SM2_ATTR, DATA, sizeof(ctap_sm2_attr));
-  memcpy(&ctap_sm2_attr, DATA, sizeof(ctap_sm2_attr));
-  return ret;
 }
 
 static int build_ecdsa_cose_key(uint8_t *data, int algo, int curve) {
@@ -149,37 +116,6 @@ static int build_ecdsa_cose_key(uint8_t *data, int algo, int curve) {
   ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_Y);
   CHECK_CBOR_RET(ret);
   ret = cbor_encode_byte_string(&map_encoder, data + 32, 32);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_close_container(&encoder, &map_encoder);
-  CHECK_CBOR_RET(ret);
-
-  const int len = cbor_encoder_get_buffer_size(&encoder, buf);
-  memcpy(data, buf, len);
-  return len;
-}
-
-static int build_ed25519_cose_key(uint8_t *data) {
-  uint8_t buf[50];
-  CborEncoder encoder, map_encoder;
-
-  cbor_encoder_init(&encoder, buf, sizeof(buf), 0);
-  CborError ret = cbor_encoder_create_map(&encoder, &map_encoder, 4);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_KTY);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_KTY_OKP);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_ALG);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_ALG_EDDSA);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_CRV);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_CRV_ED25519);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_int(&map_encoder, COSE_KEY_LABEL_X);
-  CHECK_CBOR_RET(ret);
-  ret = cbor_encode_byte_string(&map_encoder, data, 32);
   CHECK_CBOR_RET(ret);
   ret = cbor_encoder_close_container(&encoder, &map_encoder);
   CHECK_CBOR_RET(ret);
@@ -235,6 +171,9 @@ int ctap_consistency_check(void) {
   return 0;
 }
 
+extern uint8_t uPrivateKey[512];
+extern key_type_t kt;
+
 uint8_t ctap_make_auth_data(uint8_t *rp_id_hash, uint8_t *buf, uint8_t flags, const uint8_t *extension,
                             size_t extension_size, size_t *len, int32_t alg_type, bool dc, uint8_t cred_protect) {
   // See https://www.w3.org/TR/webauthn/#sec-authenticator-data
@@ -285,10 +224,6 @@ uint8_t ctap_make_auth_data(uint8_t *rp_id_hash, uint8_t *buf, uint8_t flags, co
     int cose_key_size;
     if (alg_type == COSE_ALG_ES256) {
       cose_key_size = build_ecdsa_cose_key(ad->at.public_key, COSE_ALG_ES256, COSE_KEY_CRV_P256);
-    } else if (alg_type == COSE_ALG_EDDSA) {
-      cose_key_size = build_ed25519_cose_key(ad->at.public_key);
-    } else if (alg_type == ctap_sm2_attr.algo_id) {
-      cose_key_size = build_ecdsa_cose_key(ad->at.public_key, ctap_sm2_attr.algo_id, ctap_sm2_attr.curve_id);
     } else {
       DBG_MSG("Unknown algorithm type\n");
       return CTAP2_ERR_UNHANDLED_REQUEST;
@@ -688,13 +623,16 @@ static uint8_t ctap_make_credential(CborEncoder *encoder, uint8_t *params, size_
   ret = cbor_encode_int(&map, MC_RESP_ATT_STMT);
   CHECK_CBOR_RET(ret);
   CborEncoder att_map;
-  ret = cbor_encoder_create_map(&map, &att_map, 3);
+  ret = cbor_encoder_create_map(&map, &att_map, 2);
   CHECK_CBOR_RET(ret);
   {
     // alg (ECC secp256r1)
     ret = cbor_encode_text_stringz(&att_map, "alg");
     CHECK_CBOR_RET(ret);
-    ret = cbor_encode_int(&att_map, COSE_ALG_ES256);
+    if(kt == SECP256R1)
+        ret = cbor_encode_int(&att_map, COSE_ALG_ES256);
+    else
+        return CTAP2_ERR_INVALID_CBOR;
     CHECK_CBOR_RET(ret);
 
     // sig (asn.1)
@@ -704,32 +642,41 @@ static uint8_t ctap_make_credential(CborEncoder *encoder, uint8_t *params, size_
     sha256_update(data_buf, len);
     sha256_update(mc.client_data_hash, sizeof(mc.client_data_hash));
     sha256_final(data_buf);
-    len = sign_with_device_key(data_buf, PRIVATE_KEY_LENGTH[SECP256R1], data_buf);
+    // len = sign_with_device_key(data_buf, PRIVATE_KEY_LENGTH[SECP256R1], data_buf);
+    ecc_key_t key;
+    memcpy(key.pri, uPrivateKey, PRIVATE_KEY_LENGTH[kt]);
+    // int ret = read_device_pri_key(key.pri);
+    // if (ret < 0) return 0;
+    ecc_sign(kt, &key, data_buf, PRIVATE_KEY_LENGTH[SECP256R1], data_buf);
+    memzero(&key, sizeof(key));
+    ret = ecdsa_sig2ansi(PRI_KEY_SIZE, data_buf, data_buf);
+    if (ret < 0) return 0;
+
     if (!len) return CTAP2_ERR_UNHANDLED_REQUEST;
     ret = cbor_encode_byte_string(&att_map, data_buf, len);
     CHECK_CBOR_RET(ret);
 
-    // cert (is an array)
-    ret = cbor_encode_text_stringz(&att_map, "x5c");
-    CHECK_CBOR_RET(ret);
-    CborEncoder x5carr;
-    ret = cbor_encoder_create_array(&att_map, &x5carr, 1);
-    CHECK_CBOR_RET(ret);
-    {
-      // to save RAM, generate an empty cert first, then fill it manually
-      // data_buf is never read here because length=0
-      ret = cbor_encode_byte_string(&x5carr, data_buf, 0);
-      CHECK_CBOR_RET(ret);
-      uint8_t *ptr = x5carr.data.ptr - 1;
-      ret = get_cert(ptr + 3);
-      if (ret < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
-      *ptr++ = 0x59;
-      *ptr++ = HI(ret);
-      *ptr++ = LO(ret);
-      x5carr.data.ptr = ptr + ret;
-    }
-    ret = cbor_encoder_close_container(&att_map, &x5carr);
-    CHECK_CBOR_RET(ret);
+    // // cert (is an array)
+    // ret = cbor_encode_text_stringz(&att_map, "x5c");
+    // CHECK_CBOR_RET(ret);
+    // CborEncoder x5carr;
+    // ret = cbor_encoder_create_array(&att_map, &x5carr, 1);
+    // CHECK_CBOR_RET(ret);
+    // {
+    //   // to save RAM, generate an empty cert first, then fill it manually
+    //   // data_buf is never read here because length=0
+    //   ret = cbor_encode_byte_string(&x5carr, data_buf, 0);
+    //   CHECK_CBOR_RET(ret);
+    //   uint8_t *ptr = x5carr.data.ptr - 1;
+    //   ret = get_cert(ptr + 3);
+    //   if (ret < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
+    //   *ptr++ = 0x59;
+    //   *ptr++ = HI(ret);
+    //   *ptr++ = LO(ret);
+    //   x5carr.data.ptr = ptr + ret;
+    // }
+    // ret = cbor_encoder_close_container(&att_map, &x5carr);
+    // CHECK_CBOR_RET(ret);
     // att done
   }
   ret = cbor_encoder_close_container(&map, &att_map);
@@ -1353,7 +1300,7 @@ static uint8_t ctap_get_info(CborEncoder *encoder) {
   // algorithms
   ret = cbor_encode_int(&map, GI_RESP_ALGORITHMS);
   CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_create_array(&map, &array, ctap_sm2_attr.enabled ? 3 : 2);
+  ret = cbor_encoder_create_array(&map, &array, 1);
   CHECK_CBOR_RET(ret);
   ret = cbor_encoder_create_map(&array, &sub_map, 2);
   CHECK_CBOR_RET(ret);
@@ -1369,36 +1316,6 @@ static uint8_t ctap_get_info(CborEncoder *encoder) {
   }
   ret = cbor_encoder_close_container(&array, &sub_map);
   CHECK_CBOR_RET(ret);
-  ret = cbor_encoder_create_map(&array, &sub_map, 2);
-  CHECK_CBOR_RET(ret);
-  {
-    ret = cbor_encode_text_stringz(&sub_map, "alg");
-    CHECK_CBOR_RET(ret);
-    ret = cbor_encode_int(&sub_map, COSE_ALG_EDDSA);
-    CHECK_CBOR_RET(ret);
-    ret = cbor_encode_text_stringz(&sub_map, "type");
-    CHECK_CBOR_RET(ret);
-    ret = cbor_encode_text_stringz(&sub_map, "public-key");
-    CHECK_CBOR_RET(ret);
-  }
-  ret = cbor_encoder_close_container(&array, &sub_map);
-  CHECK_CBOR_RET(ret);
-  if (ctap_sm2_attr.enabled) {
-    ret = cbor_encoder_create_map(&array, &sub_map, 2);
-    CHECK_CBOR_RET(ret);
-    {
-      ret = cbor_encode_text_stringz(&sub_map, "alg");
-      CHECK_CBOR_RET(ret);
-      ret = cbor_encode_int(&sub_map, ctap_sm2_attr.algo_id);
-      CHECK_CBOR_RET(ret);
-      ret = cbor_encode_text_stringz(&sub_map, "type");
-      CHECK_CBOR_RET(ret);
-      ret = cbor_encode_text_stringz(&sub_map, "public-key");
-      CHECK_CBOR_RET(ret);
-    }
-    ret = cbor_encoder_close_container(&array, &sub_map);
-    CHECK_CBOR_RET(ret);
-  }
   ret = cbor_encoder_close_container(&map, &array);
   CHECK_CBOR_RET(ret);
 
@@ -1853,9 +1770,6 @@ static uint8_t ctap_credential_management(CborEncoder *encoder, const uint8_t *p
       memcpy(ptr, key.pub, PUBLIC_KEY_LENGTH[key_type]);
       if (dc.credential_id.alg_type == COSE_ALG_ES256) {
         int cose_key_size = build_ecdsa_cose_key(ptr, COSE_ALG_ES256, COSE_KEY_CRV_P256);
-        sub_map.data.ptr = ptr + cose_key_size;
-      } else if (dc.credential_id.alg_type == COSE_ALG_EDDSA) {
-        int cose_key_size = build_ed25519_cose_key(ptr);
         sub_map.data.ptr = ptr + cose_key_size;
       }
       ret = cbor_encoder_close_container(&map, &sub_map);
