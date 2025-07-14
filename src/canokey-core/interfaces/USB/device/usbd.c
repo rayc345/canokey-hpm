@@ -19,18 +19,13 @@
 enum
 {
     ITF_NUM_CTAPHID = 0,
-    // ITF_NUM_CCID = 0,
-    // ITF_NUM_KBDHID,
+    ITF_NUM_KBDHID,
+    // ITF_NUM_CCID,
     // ITF_NUM_WEBUSB,
     ITF_NUM_TOTAL
 };
 
-// #define USB_CONFIG_SIZE (9 + 9 + 54 + 14 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN + 9)
-#define USB_CONFIG_SIZE (41)
-
 // CTAP_HID
-// #define CTAPHID_IN_EP 0x83
-// #define CTAPHID_OUT_EP 0x04
 #define CTAPHID_IN_EP 0x81
 #define CTAPHID_OUT_EP 0x02
 
@@ -41,19 +36,19 @@ enum
 #define CTAPHID_REPORT_CNT 64
 #define HID_CTAPHID_REPORT_DESC_SIZE 34
 
+// KBD_HID
+#define KBDHID_INT_EP 0x83
+#define KBDHID_INT_EP_SIZE 8
+#define KBDHID_INT_EP_INTERVAL 10
+
+#define HID_KBDHID_REPORT_DESC_SIZE 87
+
 // // CCID
-// #define CCID_IN_EP 0x81
-// #define CCID_OUT_EP 0x02
+// #define CCID_IN_EP 0x84
+// #define CCID_OUT_EP 0x05
 
 // #define CCID_EP_MPS_HS 512
 // #define CCID_EP_MPS_FS 64
-
-// // KBD_HID
-// #define KBDHID_INT_EP 0x85
-// #define KBDHID_INT_EP_SIZE 8
-// #define KBDHID_INT_EP_INTERVAL 10
-
-// #define HID_KBDHID_REPORT_DESC_SIZE 87
 
 // // WEBUSB
 // #define USBD_WEBUSB_VENDOR_CODE (0x01)
@@ -184,6 +179,10 @@ enum
 //     .string = USBD_BinaryObjectStoreDescriptor,
 //     .string_len = USBD_BOS_WTOTALLENGTH};
 
+#define USB_CONFIG_SIZE (9 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN)
+// #define USB_CONFIG_SIZE (9 + 9 + 54 + 14 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN + 9)
+// #define USB_CONFIG_SIZE (134)
+
 static const uint8_t device_descriptor[] = {
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0002, 0x01)};
 // USB_DEVICE_DESCRIPTOR_INIT(USB_2_1, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0002, 0x01)};
@@ -192,6 +191,8 @@ static const uint8_t config_descriptor_hs[] = {
     USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, ITF_NUM_TOTAL, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
     /************** Descriptor of CTAPHID interface ****************/
     HID_CUSTOM_INOUT_DESCRIPTOR_INIT(ITF_NUM_CTAPHID, 0x00, HID_CTAPHID_REPORT_DESC_SIZE, CTAPHID_IN_EP, CTAPHID_OUT_EP, CTAPHID_EP_MPS_HS, CTAPHID_EP_INTERVAL),
+    /************** Descriptor of KBDHID interface ****************/
+    HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of CCID interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     // /******************** Descriptor of CCID *************************/
@@ -222,8 +223,6 @@ static const uint8_t config_descriptor_hs[] = {
     // CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of KBDHID interface ****************/
-    // HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of WEBUSB interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
@@ -233,6 +232,8 @@ static const uint8_t config_descriptor_fs[] = {
     USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, ITF_NUM_TOTAL, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
     /************** Descriptor of CTAPHID interface ****************/
     HID_CUSTOM_INOUT_DESCRIPTOR_INIT(ITF_NUM_CTAPHID, 0x00, HID_CTAPHID_REPORT_DESC_SIZE, CTAPHID_IN_EP, CTAPHID_OUT_EP, CTAPHID_EP_MPS_FS, CTAPHID_EP_INTERVAL),
+    /************** Descriptor of KBDHID interface ****************/
+    HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of CCID interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     // /******************** Descriptor of CCID *************************/
@@ -263,8 +264,6 @@ static const uint8_t config_descriptor_fs[] = {
     // CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of KBDHID interface ****************/
-    // HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of WEBUSB interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
@@ -278,6 +277,8 @@ static const uint8_t other_speed_config_descriptor_hs[] = {
     USB_OTHER_SPEED_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, ITF_NUM_TOTAL, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
     /************** Descriptor of CTAPHID interface ****************/
     HID_CUSTOM_INOUT_DESCRIPTOR_INIT(ITF_NUM_CTAPHID, 0x00, HID_CTAPHID_REPORT_DESC_SIZE, CTAPHID_IN_EP, CTAPHID_OUT_EP, CTAPHID_EP_MPS_HS, CTAPHID_EP_INTERVAL),
+    /************** Descriptor of KBDHID interface ****************/
+    HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of CCID interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     // /******************** Descriptor of CCID *************************/
@@ -308,8 +309,6 @@ static const uint8_t other_speed_config_descriptor_hs[] = {
     // CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of KBDHID interface ****************/
-    // HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of WEBUSB interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
@@ -319,6 +318,8 @@ static const uint8_t other_speed_config_descriptor_fs[] = {
     USB_OTHER_SPEED_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, ITF_NUM_TOTAL, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
     /************** Descriptor of CTAPHID interface ****************/
     HID_CUSTOM_INOUT_DESCRIPTOR_INIT(ITF_NUM_CTAPHID, 0x00, HID_CTAPHID_REPORT_DESC_SIZE, CTAPHID_IN_EP, CTAPHID_OUT_EP, CTAPHID_EP_MPS_FS, CTAPHID_EP_INTERVAL),
+    /************** Descriptor of KBDHID interface ****************/
+    HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of CCID interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     // /******************** Descriptor of CCID *************************/
@@ -349,8 +350,6 @@ static const uint8_t other_speed_config_descriptor_fs[] = {
     // CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     // USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of KBDHID interface ****************/
-    // HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     // /************** Descriptor of WEBUSB interface ****************/
     // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
@@ -452,61 +451,61 @@ static const uint8_t hid_ctaphid_report_desc[HID_CTAPHID_REPORT_DESC_SIZE] = {
     0xC0              // END_COLLECTION
 };
 
-// /*!< keyboard hid report descriptor */
-// static const uint8_t hid_keyboardhid_report_desc[HID_KBDHID_REPORT_DESC_SIZE] = {
-//     0x05, 0x01,       // Usage Page (Generic Desktop Ctrls)
-//     0x09, 0x06,       // Usage (Keyboard)
-//     0xA1, 0x01,       // Collection (Application)
-//     0x85, 0x01,       //   Report ID (1)
-//     0x05, 0x07,       //   Usage Page (Kbrd/Keypad)
-//     0x19, 0xE0,       //   Usage Minimum (0xE0)
-//     0x29, 0xE7,       //   Usage Maximum (0xE7)
-//     0x15, 0x00,       //   Logical Minimum (0)
-//     0x25, 0x01,       //   Logical Maximum (1)
-//     0x75, 0x01,       //   Report Size (1)
-//     0x95, 0x08,       //   Report Count (8)
-//     0x81, 0x02,       //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-//     0x95, 0x01,       //   Report Count (1)
-//     0x75, 0x08,       //   Report Size (8)
-//     0x81, 0x03,       //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-//     0x95, 0x05,       //   Report Count (5)
-//     0x75, 0x01,       //   Report Size (1)
-//     0x05, 0x08,       //   Usage Page (LEDs)
-//     0x19, 0x01,       //   Usage Minimum (Num Lock)
-//     0x29, 0x05,       //   Usage Maximum (Kana)
-//     0x91, 0x02,       //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
-//     0x95, 0x01,       //   Report Count (1)
-//     0x75, 0x03,       //   Report Size (3)
-//     0x91, 0x03,       //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
-//     0x95, 0x05,       //   Report Count (5)
-//     0x75, 0x08,       //   Report Size (8)
-//     0x15, 0x00,       //   Logical Minimum (0)
-//     0x25, 0x65,       //   Logical Maximum (101)
-//     0x05, 0x07,       //   Usage Page (Kbrd/Keypad)
-//     0x19, 0x00,       //   Usage Minimum (0x00)
-//     0x29, 0x65,       //   Usage Maximum (0x65)
-//     0x81, 0x00,       //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-//     0xC0,             // End Collection
-//     0x05, 0x0C,       // Usage Page (Consumer)
-//     0x09, 0x01,       // Usage (Consumer Control)
-//     0xA1, 0x01,       // Collection (Application)
-//     0x85, 0x02,       //   Report ID (2)
-//     0x15, 0x00,       //   Logical Minimum (0)
-//     0x25, 0x01,       //   Logical Maximum (1)
-//     0x75, 0x08,       //   Report Size (1)
-//     0x95, 0x01,       //   Report Count (1)
-//     0x0A, 0xAE, 0x01, //   Usage (AL Keyboard Layout)
-//     0x81, 0x06,       //   Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
-//     0xC0,             // End Collection
-// };
+/*!< keyboard hid report descriptor */
+static const uint8_t hid_keyboardhid_report_desc[HID_KBDHID_REPORT_DESC_SIZE] = {
+    0x05, 0x01,       // Usage Page (Generic Desktop Ctrls)
+    0x09, 0x06,       // Usage (Keyboard)
+    0xA1, 0x01,       // Collection (Application)
+    0x85, 0x01,       //   Report ID (1)
+    0x05, 0x07,       //   Usage Page (Kbrd/Keypad)
+    0x19, 0xE0,       //   Usage Minimum (0xE0)
+    0x29, 0xE7,       //   Usage Maximum (0xE7)
+    0x15, 0x00,       //   Logical Minimum (0)
+    0x25, 0x01,       //   Logical Maximum (1)
+    0x75, 0x01,       //   Report Size (1)
+    0x95, 0x08,       //   Report Count (8)
+    0x81, 0x02,       //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x95, 0x01,       //   Report Count (1)
+    0x75, 0x08,       //   Report Size (8)
+    0x81, 0x03,       //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x95, 0x05,       //   Report Count (5)
+    0x75, 0x01,       //   Report Size (1)
+    0x05, 0x08,       //   Usage Page (LEDs)
+    0x19, 0x01,       //   Usage Minimum (Num Lock)
+    0x29, 0x05,       //   Usage Maximum (Kana)
+    0x91, 0x02,       //   Output (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    0x95, 0x01,       //   Report Count (1)
+    0x75, 0x03,       //   Report Size (3)
+    0x91, 0x03,       //   Output (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position,Non-volatile)
+    0x95, 0x05,       //   Report Count (5)
+    0x75, 0x08,       //   Report Size (8)
+    0x15, 0x00,       //   Logical Minimum (0)
+    0x25, 0x65,       //   Logical Maximum (101)
+    0x05, 0x07,       //   Usage Page (Kbrd/Keypad)
+    0x19, 0x00,       //   Usage Minimum (0x00)
+    0x29, 0x65,       //   Usage Maximum (0x65)
+    0x81, 0x00,       //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0xC0,             // End Collection
+    0x05, 0x0C,       // Usage Page (Consumer)
+    0x09, 0x01,       // Usage (Consumer Control)
+    0xA1, 0x01,       // Collection (Application)
+    0x85, 0x02,       //   Report ID (2)
+    0x15, 0x00,       //   Logical Minimum (0)
+    0x25, 0x01,       //   Logical Maximum (1)
+    0x75, 0x08,       //   Report Size (1)
+    0x95, 0x01,       //   Report Count (1)
+    0x0A, 0xAE, 0x01, //   Usage (AL Keyboard Layout)
+    0x81, 0x06,       //   Input (Data,Var,Rel,No Wrap,Linear,Preferred State,No Null Position)
+    0xC0,             // End Collection
+};
 
 static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ctaphid_buffer[CTAPHID_EP_MPS_HS];
+static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t kbdhid_buffer[KBDHID_INT_EP_SIZE];
 // static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ccid_buffer[CCID_EP_MPS_HS];
-// static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t kbdhid_buffer[KBDHID_INT_EP_SIZE];
 
 static volatile uint8_t ctaphid_state;
+static volatile uint8_t kbdhid_state;
 // static volatile uint8_t ccid_state;
-// static volatile uint8_t kbdhid_state;
 
 static void usbd_event_handler(uint8_t busid, uint8_t event)
 {
@@ -524,14 +523,14 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
         break;
     case USBD_EVENT_CONFIGURED:
         ctaphid_state = CTAPHID_IDLE;
+        kbdhid_state = KBDHID_IDLE;
         // ccid_state = CCID_STATE_IDLE;
-        // kbdhid_state = KBDHID_IDLE;
         /* setup first out ep read transfer */
-        // usbd_ep_start_read(busid, CCID_OUT_EP, ccid_buffer, usbd_get_ep_mps(busid, CCID_OUT_EP));
         usbd_ep_start_read(busid, CTAPHID_OUT_EP, ctaphid_buffer, CTAPHID_REPORT_CNT);
-        // CCID_Init();
+        // usbd_ep_start_read(busid, CCID_OUT_EP, ccid_buffer, usbd_get_ep_mps(busid, CCID_OUT_EP));
         CTAPHID_Init();
-        // KBDHID_Init();
+        KBDHID_Init();
+        // CCID_Init();
         break;
     case USBD_EVENT_SET_REMOTE_WAKEUP:
         break;
@@ -542,6 +541,85 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
         break;
     }
 }
+
+static void usbd_hid_ctaphid_in_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
+{
+    (void)busid;
+    (void)ep;
+
+    // USB_LOG_RAW("actual in len:%d\r\n", nbytes);
+    ctaphid_state = CTAPHID_IDLE;
+}
+
+static void usbd_hid_ctaphid_out_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
+{
+    // USB_LOG_RAW("actual out len:%d\r\n", nbytes);
+    CTAPHID_OutEvent(ctaphid_buffer);
+    usbd_ep_start_read(busid, ep, ctaphid_buffer, CTAPHID_REPORT_CNT);
+
+    // usbd_ep_start_read(busid, ep, read_buffer, CTAPHID_REPORT_CNT);
+    // read_buffer[0] = 0x02; /* IN: report id */
+    // usbd_ep_start_write(busid, HIDRAW_IN_EP, read_buffer, nbytes);
+}
+
+uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
+{
+    int retry = 0;
+    while (ctaphid_state != CTAPHID_IDLE)
+    {
+        // if reports are not being processed on host, we may get stuck here
+        if (++retry > 50)
+            return 1;
+        device_delay(1);
+    }
+    ctaphid_state = CTAPHID_BUSY;
+    memcpy(ctaphid_buffer, report, len);
+    return usbd_ep_start_write(busid, CTAPHID_IN_EP, ctaphid_buffer, len);
+}
+
+static struct usbd_endpoint ctaphid_in_ep = {
+    .ep_cb = usbd_hid_ctaphid_in_callback,
+    .ep_addr = CTAPHID_IN_EP};
+
+static struct usbd_endpoint ctaphid_out_ep = {
+    .ep_cb = usbd_hid_ctaphid_out_callback,
+    .ep_addr = CTAPHID_OUT_EP};
+
+struct usbd_interface ctaphidintf;
+
+void usbd_kbdhid_int_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
+{
+    (void)busid;
+    (void)ep;
+    (void)nbytes;
+    kbdhid_state = KBDHID_IDLE;
+}
+
+uint8_t USBD_KBDHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
+{
+    int retry = 0;
+    while (kbdhid_state != KBDHID_IDLE)
+    {
+        // if reports are not being processed on host, we may get stuck here
+        if (++retry > 50)
+            return 1;
+        device_delay(1);
+    }
+    kbdhid_state = KBDHID_BUSY;
+    memcpy(kbdhid_buffer, report, len);
+    return usbd_ep_start_write(busid, KBDHID_INT_EP, kbdhid_buffer, len);
+}
+
+uint8_t USBD_KBDHID_IsIdle()
+{
+    return kbdhid_state == KBDHID_IDLE;
+}
+
+static struct usbd_endpoint kbdhid_in_ep = {
+    .ep_cb = usbd_kbdhid_int_callback,
+    .ep_addr = KBDHID_INT_EP};
+
+struct usbd_interface kbdintf;
 
 // // CCID
 // void usbd_ccid_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
@@ -603,85 +681,6 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
 
 // struct usbd_interface ccid_intf;
 
-static void usbd_hid_ctaphid_in_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
-{
-    (void)busid;
-    (void)ep;
-
-    // USB_LOG_RAW("actual in len:%d\r\n", nbytes);
-    ctaphid_state = CTAPHID_IDLE;
-}
-
-static void usbd_hid_ctaphid_out_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
-{
-    // USB_LOG_RAW("actual out len:%d\r\n", nbytes);
-    CTAPHID_OutEvent(ctaphid_buffer);
-    usbd_ep_start_read(busid, ep, ctaphid_buffer, CTAPHID_REPORT_CNT);
-
-    // usbd_ep_start_read(busid, ep, read_buffer, CTAPHID_REPORT_CNT);
-    // read_buffer[0] = 0x02; /* IN: report id */
-    // usbd_ep_start_write(busid, HIDRAW_IN_EP, read_buffer, nbytes);
-}
-
-uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
-{
-    int retry = 0;
-    while (ctaphid_state != CTAPHID_IDLE)
-    {
-        // if reports are not being processed on host, we may get stuck here
-        if (++retry > 50)
-            return 1;
-        device_delay(1);
-    }
-    ctaphid_state = CTAPHID_BUSY;
-    memcpy(ctaphid_buffer, report, len);
-    return usbd_ep_start_write(busid, CTAPHID_IN_EP, ctaphid_buffer, len);
-}
-
-static struct usbd_endpoint ctaphid_in_ep = {
-    .ep_cb = usbd_hid_ctaphid_in_callback,
-    .ep_addr = CTAPHID_IN_EP};
-
-static struct usbd_endpoint ctaphid_out_ep = {
-    .ep_cb = usbd_hid_ctaphid_out_callback,
-    .ep_addr = CTAPHID_OUT_EP};
-
-struct usbd_interface ctaphidintf;
-
-// void usbd_kbdhid_int_callback(uint8_t busid, uint8_t ep, uint32_t nbytes)
-// {
-//     (void)busid;
-//     (void)ep;
-//     (void)nbytes;
-//     kbdhid_state = KBDHID_IDLE;
-// }
-
-// uint8_t USBD_KBDHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
-// {
-//     int retry = 0;
-//     while (kbdhid_state != KBDHID_IDLE)
-//     {
-//         // if reports are not being processed on host, we may get stuck here
-//         if (++retry > 50)
-//             return 1;
-//         device_delay(1);
-//     }
-//     kbdhid_state = KBDHID_BUSY;
-//     memcpy(kbdhid_buffer, report, len);
-//     return usbd_ep_start_write(busid, KBDHID_INT_EP, kbdhid_buffer, len);
-// }
-
-// uint8_t USBD_KBDHID_IsIdle()
-// {
-//     return kbdhid_state == KBDHID_IDLE;
-// }
-
-// static struct usbd_endpoint kbdhid_in_ep = {
-//     .ep_cb = usbd_kbdhid_int_callback,
-//     .ep_addr = KBDHID_INT_EP};
-
-// struct usbd_interface kbdintf;
-
 // struct usbd_interface webusbintf;
 // extern int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
 
@@ -689,16 +688,16 @@ void canokey_init(uint8_t busid, uintptr_t reg_base)
 {
     usbd_desc_register(busid, &canokey_descriptor);
 
-    // usbd_add_interface(busid, &ccid_intf);
-    // usbd_add_endpoint(busid, &ccid_out_ep);
-    // usbd_add_endpoint(busid, &ccid_in_ep);
-
     usbd_add_interface(busid, usbd_hid_init_intf(busid, &ctaphidintf, hid_ctaphid_report_desc, HID_CTAPHID_REPORT_DESC_SIZE));
     usbd_add_endpoint(busid, &ctaphid_in_ep);
     usbd_add_endpoint(busid, &ctaphid_out_ep);
 
-    // usbd_add_interface(busid, usbd_hid_init_intf(busid, &kbdintf, hid_keyboardhid_report_desc, HID_KBDHID_REPORT_DESC_SIZE));
-    // usbd_add_endpoint(busid, &kbdhid_in_ep);
+    usbd_add_interface(busid, usbd_hid_init_intf(busid, &kbdintf, hid_keyboardhid_report_desc, HID_KBDHID_REPORT_DESC_SIZE));
+    usbd_add_endpoint(busid, &kbdhid_in_ep);
+
+    // usbd_add_interface(busid, &ccid_intf);
+    // usbd_add_endpoint(busid, &ccid_out_ep);
+    // usbd_add_endpoint(busid, &ccid_in_ep);
 
     // webusbintf.class_interface_handler = USBD_WEBUSB_Setup;
     // usbd_add_interface(busid, &webusbintf);

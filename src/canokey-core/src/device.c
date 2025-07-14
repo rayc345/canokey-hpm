@@ -20,7 +20,7 @@ void device_loop(void) {
   // CCID_Loop();
   CTAPHID_Loop(0);
   // WebUSB_Loop();
-  // KBDHID_Loop();
+  KBDHID_Loop();
 }
 
 bool device_allow_kbd_touch(void) {
