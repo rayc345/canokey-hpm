@@ -15,7 +15,7 @@
 tusb_desc_device_t const desc_device = {
   .bLength            = sizeof(tusb_desc_device_t),
   .bDescriptorType    = TUSB_DESC_DEVICE,
-  .bcdUSB             = 0x0210,
+  .bcdUSB             = 0x0200,
   .bDeviceClass       = 0x00,
   .bDeviceSubClass    = 0x00,
   .bDeviceProtocol    = 0x00,
@@ -78,13 +78,13 @@ uint8_t const desc_configuration_kbdhid[] = {
     PLACEHOLDER_EPIN_ADDR, PLACEHOLDER_EPIN_SIZE, 10),
 };
 
-uint8_t const desc_configuration_webusb[] = {
-  /* Interface */
-  0x09, TUSB_DESC_INTERFACE, PLACEHOLDER_IFACE_NUM, 0, 0,
-  TUSB_CLASS_VENDOR_SPECIFIC, 0xFF, 0xFF, USBD_IDX_WEBUSB_STR
+// uint8_t const desc_configuration_webusb[] = {
+//   /* Interface */
+//   0x09, TUSB_DESC_INTERFACE, PLACEHOLDER_IFACE_NUM, 0, 0,
+//   TUSB_CLASS_VENDOR_SPECIFIC, 0xFF, 0xFF, USBD_IDX_WEBUSB_STR
 
-  /* No endpoints */
-};
+//   /* No endpoints */
+// };
 
 tusb_ccid_descriptor_t const desc_configuration_ccid = {
   .bLength            = sizeof(tusb_ccid_descriptor_t),
@@ -127,11 +127,15 @@ uint8_t const desc_configuration_ccid_endpoints[] = {
   U16_TO_U8S_LE(PLACEHOLDER_EPIN_SIZE), 0
 };
 
-#define WEBUSB_DESC_LEN 9
+// #define WEBUSB_DESC_LEN 9
 #define CCID_DESC_LEN (sizeof(desc_configuration_ccid_interface) + \
   sizeof(tusb_ccid_descriptor_t) + sizeof(desc_configuration_ccid_endpoints))
+// #define CONFIG_TOTAL_LEN (\
+//   TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + WEBUSB_DESC_LEN + CCID_DESC_LEN + TUD_HID_DESC_LEN)
 #define CONFIG_TOTAL_LEN (\
-  TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + WEBUSB_DESC_LEN + CCID_DESC_LEN + TUD_HID_DESC_LEN)
+  TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + CCID_DESC_LEN + TUD_HID_DESC_LEN)
+
+//  9+            32                                +9+            9+54+14 +     25
 
 uint8_t const desc_configuration[TUD_CONFIG_DESC_LEN] = {
   // Config number, interface count, string index, total length, attribute, power in mA
@@ -179,11 +183,11 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index) {
   memcpy(desc, desc_configuration_ctaphid, sizeof(desc_configuration_ctaphid));
   patch_interface_descriptor(desc, desc_end, USBD_CANOKEY_CTAPHID_IF, EP_IN(ctap_hid), EP_OUT(ctap_hid), CFG_TUD_CTAPHID_EP_BUFSIZE);
 
-  // patch WEBUSB descriptor
-  desc = desc_end;
-  desc_end = desc + sizeof(desc_configuration_webusb);
-  memcpy(desc, desc_configuration_webusb, sizeof(desc_configuration_webusb));
-  patch_interface_descriptor(desc, desc_end, USBD_CANOKEY_WEBUSB_IF, 0, 0, 0);
+  // // patch WEBUSB descriptor
+  // desc = desc_end;
+  // desc_end = desc + sizeof(desc_configuration_webusb);
+  // memcpy(desc, desc_configuration_webusb, sizeof(desc_configuration_webusb));
+  // patch_interface_descriptor(desc, desc_end, USBD_CANOKEY_WEBUSB_IF, 0, 0, 0);
 
   // merge and patch CCID descriptor
   desc = desc_end;
@@ -219,86 +223,86 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index) {
   return _desc_configuration;
 }
 
-//--------------------------------------------------------------------+
-// BOS Descriptor
-// Microsoft OS 2.0 registry property descriptor
-//--------------------------------------------------------------------+
+// //--------------------------------------------------------------------+
+// // BOS Descriptor
+// // Microsoft OS 2.0 registry property descriptor
+// //--------------------------------------------------------------------+
 
-#define BOS_TOTAL_LEN      (TUD_BOS_DESC_LEN + TUD_BOS_WEBUSB_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN)
+// #define BOS_TOTAL_LEN      (TUD_BOS_DESC_LEN + TUD_BOS_WEBUSB_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN)
 
-#define MS_OS_20_DESC_LEN  0xB2
+// #define MS_OS_20_DESC_LEN  0xB2
 
-// BOS Descriptor is required for webUSB
-uint8_t const desc_bos[] = {
-  // total length, number of device caps
-  TUD_BOS_DESCRIPTOR(BOS_TOTAL_LEN, 2),
+// // BOS Descriptor is required for webUSB
+// uint8_t const desc_bos[] = {
+//   // total length, number of device caps
+//   TUD_BOS_DESCRIPTOR(BOS_TOTAL_LEN, 2),
 
-  // Vendor Code, iLandingPage
-  TUD_BOS_WEBUSB_DESCRIPTOR(VENDOR_REQUEST_WEBUSB, 1),
+//   // Vendor Code, iLandingPage
+//   TUD_BOS_WEBUSB_DESCRIPTOR(VENDOR_REQUEST_WEBUSB, 1),
 
-  // Microsoft OS 2.0 descriptor
-  TUD_BOS_MS_OS_20_DESCRIPTOR(MS_OS_20_DESC_LEN, VENDOR_REQUEST_MICROSOFT)
-};
+//   // Microsoft OS 2.0 descriptor
+//   TUD_BOS_MS_OS_20_DESCRIPTOR(MS_OS_20_DESC_LEN, VENDOR_REQUEST_MICROSOFT)
+// };
 
-static uint8_t _desc_bos[BOS_TOTAL_LEN];
+// static uint8_t _desc_bos[BOS_TOTAL_LEN];
 
-uint8_t const * tud_descriptor_bos_cb(void) {
-  memcpy(_desc_bos, desc_bos, sizeof(desc_bos));
-  _desc_bos[28] = cfg_is_webusb_landing_enable();
+// uint8_t const * tud_descriptor_bos_cb(void) {
+//   memcpy(_desc_bos, desc_bos, sizeof(desc_bos));
+//   _desc_bos[28] = cfg_is_webusb_landing_enable();
 
-  DBG_MSG("BOS Descriptor: ");
-  PRINT_HEX(_desc_bos, BOS_TOTAL_LEN);
+//   DBG_MSG("BOS Descriptor: ");
+//   PRINT_HEX(_desc_bos, BOS_TOTAL_LEN);
 
-  return _desc_bos;
-}
+//   return _desc_bos;
+// }
 
-uint8_t const desc_ms_os_20[] = {
-  // Set header: length, type, windows version, total length
-  U16_TO_U8S_LE(0x000A), U16_TO_U8S_LE(MS_OS_20_SET_HEADER_DESCRIPTOR), 
-  U32_TO_U8S_LE(0x06030000), U16_TO_U8S_LE(MS_OS_20_DESC_LEN),
+// uint8_t const desc_ms_os_20[] = {
+//   // Set header: length, type, windows version, total length
+//   U16_TO_U8S_LE(0x000A), U16_TO_U8S_LE(MS_OS_20_SET_HEADER_DESCRIPTOR), 
+//   U32_TO_U8S_LE(0x06030000), U16_TO_U8S_LE(MS_OS_20_DESC_LEN),
 
-  // Configuration subset header
-  // length, type, configuration index, reserved, configuration total length
-  U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_CONFIGURATION), 
-  0, 0, U16_TO_U8S_LE(MS_OS_20_DESC_LEN-0x0A),
+//   // Configuration subset header
+//   // length, type, configuration index, reserved, configuration total length
+//   U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_CONFIGURATION), 
+//   0, 0, U16_TO_U8S_LE(MS_OS_20_DESC_LEN-0x0A),
 
-  // Function Subset header: length, type, first interface, reserved, subset length
-  U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_FUNCTION), 
-  1, 0, U16_TO_U8S_LE(MS_OS_20_DESC_LEN-0x0A-0x08),
+//   // Function Subset header: length, type, first interface, reserved, subset length
+//   U16_TO_U8S_LE(0x0008), U16_TO_U8S_LE(MS_OS_20_SUBSET_HEADER_FUNCTION), 
+//   1, 0, U16_TO_U8S_LE(MS_OS_20_DESC_LEN-0x0A-0x08),
 
-  // MS OS 2.0 Compatible ID descriptor: length, type, compatible ID, sub compatible ID
-  U16_TO_U8S_LE(0x0014), U16_TO_U8S_LE(MS_OS_20_FEATURE_COMPATBLE_ID), 
-  'W', 'I', 'N', 'U', 'S', 'B', 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // sub-compatible
+//   // MS OS 2.0 Compatible ID descriptor: length, type, compatible ID, sub compatible ID
+//   U16_TO_U8S_LE(0x0014), U16_TO_U8S_LE(MS_OS_20_FEATURE_COMPATBLE_ID), 
+//   'W', 'I', 'N', 'U', 'S', 'B', 0x00, 0x00,
+//   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // sub-compatible
 
-  // MS OS 2.0 Registry property descriptor: length, type
-  U16_TO_U8S_LE(MS_OS_20_DESC_LEN-0x0A-0x08-0x08-0x14), 
-  U16_TO_U8S_LE(MS_OS_20_FEATURE_REG_PROPERTY),
+//   // MS OS 2.0 Registry property descriptor: length, type
+//   U16_TO_U8S_LE(MS_OS_20_DESC_LEN-0x0A-0x08-0x08-0x14), 
+//   U16_TO_U8S_LE(MS_OS_20_FEATURE_REG_PROPERTY),
 
-  // wPropertyDataType, wPropertyNameLength and PropertyName "DeviceInterfaceGUIDs"
-  U16_TO_U8S_LE(0x0007), U16_TO_U8S_LE(0x002A),
-  'D', 0x00, 'e', 0x00, 'v', 0x00, 'i', 0x00, 'c', 0x00, 'e', 0x00, 'I', 0x00,
-  'n', 0x00, 't', 0x00, 'e', 0x00, 'r', 0x00, 'f', 0x00, 'a', 0x00, 'c', 0x00,
-  'e', 0x00, 'G', 0x00, 'U', 0x00, 'I', 0x00, 'D', 0x00, 's', 0x00, 0x00, 0x00,
-  U16_TO_U8S_LE(0x0050), // wPropertyDataLength
+//   // wPropertyDataType, wPropertyNameLength and PropertyName "DeviceInterfaceGUIDs"
+//   U16_TO_U8S_LE(0x0007), U16_TO_U8S_LE(0x002A),
+//   'D', 0x00, 'e', 0x00, 'v', 0x00, 'i', 0x00, 'c', 0x00, 'e', 0x00, 'I', 0x00,
+//   'n', 0x00, 't', 0x00, 'e', 0x00, 'r', 0x00, 'f', 0x00, 'a', 0x00, 'c', 0x00,
+//   'e', 0x00, 'G', 0x00, 'U', 0x00, 'I', 0x00, 'D', 0x00, 's', 0x00, 0x00, 0x00,
+//   U16_TO_U8S_LE(0x0050), // wPropertyDataLength
 
-	// bPropertyData: “{244eb29e-e090-4e49-81fe-1f20f8d3b8f4}”.
-  '{', 0x00, '2', 0x00, '4', 0x00, '4', 0x00, 'E', 0x00, 'B', 0x00, '2', 0x00,
-  '9', 0x00, 'E', 0x00, '-', 0x00, 'E', 0x00, '0', 0x00, '9', 0x00, '0', 0x00,
-  '-', 0x00, '4', 0x00, 'E', 0x00, '4', 0x00, '9', 0x00, '-', 0x00, '8', 0x00,
-  '1', 0x00, 'F', 0x00, 'E', 0x00, '-', 0x00, '1', 0x00, 'F', 0x00, '2', 0x00,
-  '0', 0x00, 'F', 0x00, '8', 0x00, 'D', 0x00, '3', 0x00, 'B', 0x00, '8', 0x00,
-  'F', 0x00, '4', 0x00, '}', 0x00, 0x00, 0x00, 0x00, 0x00
-};
+// 	// bPropertyData: “{244eb29e-e090-4e49-81fe-1f20f8d3b8f4}”.
+//   '{', 0x00, '2', 0x00, '4', 0x00, '4', 0x00, 'E', 0x00, 'B', 0x00, '2', 0x00,
+//   '9', 0x00, 'E', 0x00, '-', 0x00, 'E', 0x00, '0', 0x00, '9', 0x00, '0', 0x00,
+//   '-', 0x00, '4', 0x00, 'E', 0x00, '4', 0x00, '9', 0x00, '-', 0x00, '8', 0x00,
+//   '1', 0x00, 'F', 0x00, 'E', 0x00, '-', 0x00, '1', 0x00, 'F', 0x00, '2', 0x00,
+//   '0', 0x00, 'F', 0x00, '8', 0x00, 'D', 0x00, '3', 0x00, 'B', 0x00, '8', 0x00,
+//   'F', 0x00, '4', 0x00, '}', 0x00, 0x00, 0x00, 0x00, 0x00
+// };
 
-TU_VERIFY_STATIC(sizeof(desc_ms_os_20) == MS_OS_20_DESC_LEN, "Incorrect size");
+// TU_VERIFY_STATIC(sizeof(desc_ms_os_20) == MS_OS_20_DESC_LEN, "Incorrect size");
 
-const tusb_desc_webusb_url_t desc_url = {
-  .bLength         = 3 + sizeof(USBD_URL_STRING) - 1,
-  .bDescriptorType = 3, // WEBUSB URL type
-  .bScheme         = 1, // 0: http, 1: https
-  .url             = USBD_URL_STRING
-};
+// const tusb_desc_webusb_url_t desc_url = {
+//   .bLength         = 3 + sizeof(USBD_URL_STRING) - 1,
+//   .bDescriptorType = 3, // WEBUSB URL type
+//   .bScheme         = 1, // 0: http, 1: https
+//   .url             = USBD_URL_STRING
+// };
 
 //--------------------------------------------------------------------+
 // String Descriptors

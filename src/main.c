@@ -56,7 +56,6 @@ int main(void)
     littlefs_init();
     applets_install();
     init_apdu_buffer();
-    device_mounted();
     canokey_usb_device_init();
     //canokey_init(0, CONFIG_HPM_USBD_BASE);
 

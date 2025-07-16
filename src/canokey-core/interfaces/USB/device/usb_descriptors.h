@@ -3,7 +3,7 @@
 
 #include <usb_device.h>
 
-#define USBD_VID 0x20A0
+#define USBD_VID 0xCafe
 #define USBD_PID 0x42D4
 
 #define USBD_LANGID_STRING 0x09, 0x04
@@ -48,7 +48,7 @@ enum {
 
 // Interface ID
 #define USBD_CANOKEY_CTAPHID_IF IFACE_TABLE.ctap_hid
-#define USBD_CANOKEY_WEBUSB_IF IFACE_TABLE.webusb
+// #define USBD_CANOKEY_WEBUSB_IF IFACE_TABLE.webusb
 #define USBD_CANOKEY_CCID_IF IFACE_TABLE.ccid
 #define USBD_CANOKEY_KBDHID_IF IFACE_TABLE.kbd_hid
 
@@ -59,14 +59,14 @@ enum {
   HID_ITF_KBD = 1
 };
 
-// WebUSB vendor request
-enum {
-  VENDOR_REQUEST_WEBUSB = 1,
-  VENDOR_REQUEST_MICROSOFT = 2
-};
+// // WebUSB vendor request
+// enum {
+//   VENDOR_REQUEST_WEBUSB = 1,
+//   VENDOR_REQUEST_MICROSOFT = 2
+// };
 
-// MSOS 2.0 descriptor, used in tud_vendor_control_xfer_cb()
-extern uint8_t const desc_ms_os_20[];
-extern tusb_desc_webusb_url_t const desc_url;
+// // MSOS 2.0 descriptor, used in tud_vendor_control_xfer_cb()
+// extern uint8_t const desc_ms_os_20[];
+// extern tusb_desc_webusb_url_t const desc_url;
 
 #endif /* __USB_DESCRIPTORS_H__ */

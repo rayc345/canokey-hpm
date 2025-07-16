@@ -5,8 +5,8 @@
 #include <ctaphid.h>
 #include <device.h>
 #include <kbdhid.h>
-#include <webusb.h>
 #include <tusb.h>
+// #include <webusb.h>
 
 volatile static uint8_t touch_result;
 static uint8_t has_rf;
@@ -21,7 +21,7 @@ uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 void device_mounted() {
   ccid_init();
   ctap_hid_init(CTAPHID_SendReport);
-  webusb_init();
+  // webusb_init();
   kbd_hid_init();
 }
 
@@ -29,7 +29,7 @@ void device_loop(void) {
   tud_task(); // TinyUSB stack task
   ccid_loop();
   ctap_hid_loop(0);
-  webusb_loop(); 
+  // webusb_loop(); 
   kbd_hid_loop();
 }
 

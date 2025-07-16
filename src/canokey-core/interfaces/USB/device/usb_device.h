@@ -7,7 +7,7 @@
 // 0xFF indicates corresponding interface disabled
 typedef struct {
   uint8_t ctap_hid;
-  uint8_t webusb;
+  // uint8_t webusb;
   uint8_t ccid;
   uint8_t kbd_hid;
 } IFACE_TABLE_t;
