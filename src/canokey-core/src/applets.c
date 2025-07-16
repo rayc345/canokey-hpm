@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-#include <admin.h>
 #include <applets.h>
 #include <ctap.h>
-#include <ndef.h>
-#include <oath.h>
-#include <openpgp.h>
-#include <pass.h>
-#include <piv.h>
 
 void applets_install(void) {
   // openpgp_install(0);

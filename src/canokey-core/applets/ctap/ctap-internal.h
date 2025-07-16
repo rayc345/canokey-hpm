@@ -13,6 +13,7 @@
 
 // Filesystem Meta
 #define CTAP_CERT_FILE  "ctap_cert"
+#define KEY_ATTR        0x00
 #define SIGN_CTR_ATTR   0x01
 #define PIN_ATTR        0x02
 #define PIN_CTR_ATTR    0x03

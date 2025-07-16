@@ -69,6 +69,9 @@ typedef struct {
 #define APDU_CHAINING_LAST_BLOCK 0x02
 #define APDU_CHAINING_OVERFLOW 0x03
 
+#define ABDATA_SIZE (APDU_BUFFER_SIZE + 2)
+extern uint8_t global_buffer[ABDATA_SIZE];
+
 typedef struct {
   CAPDU capdu;
   uint8_t in_chaining;
@@ -79,7 +82,6 @@ typedef struct {
   uint16_t sent;
 } RAPDU_CHAINING;
 
-extern uint8_t *global_buffer;
 
 enum {
   BUFFER_OWNER_NONE = 1,
@@ -88,9 +90,8 @@ enum {
   BUFFER_OWNER_USBD, // store the configuration descriptor during a control transfer
 };
 
-void init_apdu_buffer(void); // implement in ccid.c for reusing the ccid buffer
-int acquire_apdu_buffer(uint8_t owner);
-int release_apdu_buffer(uint8_t owner);
+// int acquire_apdu_buffer(uint8_t owner);
+// int release_apdu_buffer(uint8_t owner);
 
 int build_capdu(CAPDU *capdu, const uint8_t *cmd, uint16_t len);
 int apdu_input(CAPDU_CHAINING *ex, const CAPDU *sh);

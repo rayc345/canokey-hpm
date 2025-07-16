@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "common.h"
-#include <admin.h>
-#include <ccid.h>
 #include <ctaphid.h>
 #include <device.h>
-#include <kbdhid.h>
-#include <webusb.h>
 
 static volatile uint8_t touch_result;
 static uint8_t has_rf;

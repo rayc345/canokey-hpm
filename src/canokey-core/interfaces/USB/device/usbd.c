@@ -11,9 +11,6 @@
 #include "usbd_hid.h"
 #include "usb_hid.h"
 #include "ctaphid.h"
-#include "kbdhid.h"
-#include "ccid.h"
-#include "webusb.h"
 #include "device.h"
 
 enum

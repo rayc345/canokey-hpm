@@ -5,13 +5,6 @@
 #include "lfs.h"
 #include "hpm_flash.h"
 #include "fs.h"
-#include <ndef.h>
-#include <oath.h>
-#include <openpgp.h>
-#include <pass.h>
-#include <pin.h>
-#include <piv.h>
-#include <admin.h>
 #include <ctap.h>
 
 #define READ_SIZE 32

@@ -90,6 +90,16 @@ uint8_t ctap_install(uint8_t reset) {
   return 0;
 }
 
+int ctap_install_private_key(const CAPDU *capdu, RAPDU *rapdu) {
+  if (LC != PRI_KEY_SIZE) EXCEPT(SW_WRONG_LENGTH);
+  return write_attr(CTAP_CERT_FILE, KEY_ATTR, DATA, LC);
+}
+
+int ctap_install_cert(const CAPDU *capdu, RAPDU *rapdu) {
+  if (LC > MAX_CERT_SIZE) EXCEPT(SW_WRONG_LENGTH);
+  return write_file(CTAP_CERT_FILE, DATA, 0, LC, 1);
+}
+
 static int build_ecdsa_cose_key(uint8_t *data, int algo, int curve) {
   uint8_t buf[80];
   CborEncoder encoder, map_encoder;
@@ -170,9 +180,6 @@ int ctap_consistency_check(void) {
   }
   return 0;
 }
-
-extern uint8_t uPrivateKey[512];
-extern key_type_t kt;
 
 uint8_t ctap_make_auth_data(uint8_t *rp_id_hash, uint8_t *buf, uint8_t flags, const uint8_t *extension,
                             size_t extension_size, size_t *len, int32_t alg_type, bool dc, uint8_t cred_protect) {
@@ -623,16 +630,13 @@ static uint8_t ctap_make_credential(CborEncoder *encoder, uint8_t *params, size_
   ret = cbor_encode_int(&map, MC_RESP_ATT_STMT);
   CHECK_CBOR_RET(ret);
   CborEncoder att_map;
-  ret = cbor_encoder_create_map(&map, &att_map, 2);
+  ret = cbor_encoder_create_map(&map, &att_map, 3);
   CHECK_CBOR_RET(ret);
   {
     // alg (ECC secp256r1)
     ret = cbor_encode_text_stringz(&att_map, "alg");
     CHECK_CBOR_RET(ret);
-    if(kt == SECP256R1)
-        ret = cbor_encode_int(&att_map, COSE_ALG_ES256);
-    else
-        return CTAP2_ERR_INVALID_CBOR;
+    ret = cbor_encode_int(&att_map, COSE_ALG_ES256);
     CHECK_CBOR_RET(ret);
 
     // sig (asn.1)
@@ -642,41 +646,32 @@ static uint8_t ctap_make_credential(CborEncoder *encoder, uint8_t *params, size_
     sha256_update(data_buf, len);
     sha256_update(mc.client_data_hash, sizeof(mc.client_data_hash));
     sha256_final(data_buf);
-    // len = sign_with_device_key(data_buf, PRIVATE_KEY_LENGTH[SECP256R1], data_buf);
-    ecc_key_t key;
-    memcpy(key.pri, uPrivateKey, PRIVATE_KEY_LENGTH[kt]);
-    // int ret = read_device_pri_key(key.pri);
-    // if (ret < 0) return 0;
-    ecc_sign(kt, &key, data_buf, PRIVATE_KEY_LENGTH[SECP256R1], data_buf);
-    memzero(&key, sizeof(key));
-    ret = ecdsa_sig2ansi(PRI_KEY_SIZE, data_buf, data_buf);
-    if (ret < 0) return 0;
-
+    len = sign_with_device_key(data_buf, PRIVATE_KEY_LENGTH[SECP256R1], data_buf);
     if (!len) return CTAP2_ERR_UNHANDLED_REQUEST;
     ret = cbor_encode_byte_string(&att_map, data_buf, len);
     CHECK_CBOR_RET(ret);
 
-    // // cert (is an array)
-    // ret = cbor_encode_text_stringz(&att_map, "x5c");
-    // CHECK_CBOR_RET(ret);
-    // CborEncoder x5carr;
-    // ret = cbor_encoder_create_array(&att_map, &x5carr, 1);
-    // CHECK_CBOR_RET(ret);
-    // {
-    //   // to save RAM, generate an empty cert first, then fill it manually
-    //   // data_buf is never read here because length=0
-    //   ret = cbor_encode_byte_string(&x5carr, data_buf, 0);
-    //   CHECK_CBOR_RET(ret);
-    //   uint8_t *ptr = x5carr.data.ptr - 1;
-    //   ret = get_cert(ptr + 3);
-    //   if (ret < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
-    //   *ptr++ = 0x59;
-    //   *ptr++ = HI(ret);
-    //   *ptr++ = LO(ret);
-    //   x5carr.data.ptr = ptr + ret;
-    // }
-    // ret = cbor_encoder_close_container(&att_map, &x5carr);
-    // CHECK_CBOR_RET(ret);
+    // cert (is an array)
+    ret = cbor_encode_text_stringz(&att_map, "x5c");
+    CHECK_CBOR_RET(ret);
+    CborEncoder x5carr;
+    ret = cbor_encoder_create_array(&att_map, &x5carr, 1);
+    CHECK_CBOR_RET(ret);
+    {
+      // to save RAM, generate an empty cert first, then fill it manually
+      // data_buf is never read here because length=0
+      ret = cbor_encode_byte_string(&x5carr, data_buf, 0);
+      CHECK_CBOR_RET(ret);
+      uint8_t *ptr = x5carr.data.ptr - 1;
+      ret = get_cert(ptr + 3);
+      if (ret < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
+      *ptr++ = 0x59;
+      *ptr++ = HI(ret);
+      *ptr++ = LO(ret);
+      x5carr.data.ptr = ptr + ret;
+    }
+    ret = cbor_encoder_close_container(&att_map, &x5carr);
+    CHECK_CBOR_RET(ret);
     // att done
   }
   ret = cbor_encoder_close_container(&map, &att_map);

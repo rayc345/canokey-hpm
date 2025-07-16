@@ -215,6 +215,12 @@ key_type_t cose_alg_to_key_type(int alg) {
   }
 }
 
+static int read_device_pri_key(uint8_t *pri_key) {
+  int ret = read_attr(CTAP_CERT_FILE, KEY_ATTR, pri_key, PRI_KEY_SIZE);
+  if (ret < 0) return ret;
+  return 0;
+}
+
 static int read_kh_key(uint8_t *kh_key) {
   int ret = read_attr(CTAP_CERT_FILE, KH_KEY_ATTR, kh_key, KH_KEY_SIZE);
   if (ret < 0) return ret;
@@ -268,9 +274,6 @@ bool check_credential_protect_requirements(credential_id *kh, bool with_cred_lis
   return true;
 }
 
-uint8_t uPrivateKey[512];
-key_type_t kt;
-
 int generate_key_handle(credential_id *kh, uint8_t *pubkey, int32_t alg_type, uint8_t dc, uint8_t cp) {
   ecc_key_t key;
   uint8_t kh_key[KH_KEY_SIZE];
@@ -293,12 +296,8 @@ int generate_key_handle(credential_id *kh, uint8_t *pubkey, int32_t alg_type, ui
   memzero(kh_key, KH_KEY_SIZE);
 
   memcpy(pubkey, key.pub, PUBLIC_KEY_LENGTH[key_type]);
-  memcpy(uPrivateKey, key.pri, PRIVATE_KEY_LENGTH[key_type]);
-  kt=key_type;
   DBG_MSG("Public: ");
   PRINT_HEX(pubkey, PUBLIC_KEY_LENGTH[key_type]);
-  DBG_MSG("Private: ");
-  PRINT_HEX(key.pri, PRIVATE_KEY_LENGTH[key_type]);
   memzero(&key, sizeof(key));
 
   return 0;
@@ -328,10 +327,9 @@ int verify_key_handle(const credential_id *kh, ecc_key_t *key) {
 
 size_t sign_with_device_key(const uint8_t *input, size_t input_len, uint8_t *sig) {
   ecc_key_t key;
-  memcpy(key.pri,uPrivateKey,PRIVATE_KEY_LENGTH[kt]);
-  // int ret = read_device_pri_key(key.pri);
-  // if (ret < 0) return 0;
-  ecc_sign(kt, &key, input, input_len, sig);
+  int ret = read_device_pri_key(key.pri);
+  if (ret < 0) return 0;
+  ecc_sign(SECP256R1, &key, input, input_len, sig);
   memzero(&key, sizeof(key));
   return ecdsa_sig2ansi(PRI_KEY_SIZE, sig, sig);
 }
@@ -360,6 +358,8 @@ int sign_with_private_key(int32_t alg_type, ecc_key_t *key, const uint8_t *input
   PRINT_HEX(sig, SIGNATURE_LENGTH[key_type]);
   return ecdsa_sig2ansi(PRIVATE_KEY_LENGTH[key_type], sig, sig);
 }
+
+int get_cert(uint8_t *buf) { return read_file(CTAP_CERT_FILE, buf, 0, MAX_CERT_SIZE); }
 
 bool has_pin(void) {
   uint8_t tmp;
