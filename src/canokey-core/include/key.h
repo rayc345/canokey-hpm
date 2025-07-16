@@ -76,8 +76,6 @@ int ck_parse_piv(ck_key_t *key, const uint8_t *buf, size_t buf_len);
 
 int ck_parse_piv_policies(ck_key_t *key, const uint8_t *buf, size_t buf_len);
 
-int ck_parse_openpgp(ck_key_t *key, const uint8_t *buf, size_t buf_len);
-
 int ck_read_key_metadata(const char *path, key_meta_t *meta);
 
 int ck_write_key_metadata(const char *path, const key_meta_t *meta);

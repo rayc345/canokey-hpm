@@ -7,7 +7,6 @@
 #include "fs.h"
 #include <ndef.h>
 #include <oath.h>
-#include <openpgp.h>
 #include <pass.h>
 #include <pin.h>
 #include <piv.h>
@@ -22,9 +21,9 @@
 static struct lfs_config config;
 static nor_flash_config_t nor_config;
 
-static alignas(16) uint8_t read_buffer[LFS_CACHE_SIZE];
-static alignas(16) uint8_t prog_buffer[LFS_CACHE_SIZE];
-static alignas(16) uint8_t lookahead_buffer[LOOKAHEAD_SIZE];
+static alignas(64) uint8_t read_buffer[LFS_CACHE_SIZE];
+static alignas(64) uint8_t prog_buffer[LFS_CACHE_SIZE];
+static alignas(64) uint8_t lookahead_buffer[LOOKAHEAD_SIZE];
 
 int block_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size)
 {
@@ -97,13 +96,12 @@ void littlefs_init(void)
     printf("Formatting %02X\n", err);
     err = fs_mount(&config);
     printf("Remount %02X\n", err);
-    //openpgp_install(1);
-    //piv_install(1);
-    //oath_install(1);
+    piv_install(1);
+    oath_install(1);
     ctap_install(1);
-    //ndef_install(1);
-    //pass_install(1);
-    //admin_install(1);
+    ndef_install(1);
+    pass_install(1);
+    admin_install(1);
 
   }
 

@@ -12,16 +12,19 @@ set(CONFIG_USB_DEVICE_HID 1)
 
 find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
-project(Canokey-hpm)
-
 sdk_compile_definitions(-DMBEDTLS_CONFIG_FILE="hpm_sdk_mbedtls_config.h")
+
 sdk_compile_definitions(USE_MBEDCRYPTO)
 sdk_compile_definitions(DEBUG_OUTPUT)
 sdk_compile_definitions(LFS_YES_TRACE)
 sdk_compile_definitions(FLT16_MANT_DIG=0)
 
-sdk_compile_options(-fno-inline)
+# sdk_compile_options(-fno-inline)
+# sdk_compile_options(-fstack-usage)
 
+project(Canokey-hpm)
+
+sdk_inc(inc)
 # sdk_ses_opt_lib_io_type(RTT)
 
 # LittleFS
@@ -52,7 +55,6 @@ sdk_app_inc(src/canokey-core/applets/admin)
 sdk_app_inc(src/canokey-core/applets/ctap)
 sdk_app_inc(src/canokey-core/applets/ndef)
 sdk_app_inc(src/canokey-core/applets/oath)
-sdk_app_inc(src/canokey-core/applets/openpgp)
 sdk_app_inc(src/canokey-core/applets/pass)
 sdk_app_inc(src/canokey-core/applets/piv)
 sdk_app_src(src/canokey-core/applets/admin/admin.c)
@@ -62,8 +64,6 @@ sdk_app_src(src/canokey-core/applets/ctap/secret.c)
 sdk_app_src(src/canokey-core/applets/ctap/u2f.c)
 sdk_app_src(src/canokey-core/applets/ndef/ndef.c)
 sdk_app_src(src/canokey-core/applets/oath/oath.c)
-sdk_app_src(src/canokey-core/applets/openpgp/openpgp.c)
-sdk_app_src(src/canokey-core/applets/openpgp/pgp_key.c)
 sdk_app_src(src/canokey-core/applets/pass/pass.c)
 sdk_app_src(src/canokey-core/applets/piv/piv.c)
 
@@ -110,12 +110,8 @@ sdk_app_src(src/canokey-crypto/src/memzero.c)
 sdk_app_src(src/canokey-crypto/src/rand.c)
 sdk_app_src(src/canokey-crypto/src/rsa.c)
 sdk_app_src(src/canokey-crypto/src/sha.c)
-sdk_app_src(src/canokey-crypto/src/sha3.c)
-sdk_app_src(src/canokey-crypto/src/sm3.c)
 
 # Main
-sdk_app_inc(inc)
-sdk_app_inc(src)
 sdk_app_src(src/main.c)
 sdk_app_src(src/device2.c)
 
