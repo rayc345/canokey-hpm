@@ -21,7 +21,7 @@ enum
     ITF_NUM_CTAPHID = 0,
     ITF_NUM_KBDHID,
     ITF_NUM_CCID,
-    // ITF_NUM_WEBUSB,
+    ITF_NUM_WEBUSB,
     ITF_NUM_TOTAL
 };
 
@@ -50,142 +50,144 @@ enum
 #define CCID_EP_MPS_HS 512
 #define CCID_EP_MPS_FS 64
 
-// // WEBUSB
-// #define USBD_WEBUSB_VENDOR_CODE (0x01)
-// #define USBD_WINUSB_VENDOR_CODE (0x02)
-// #define USBD_WINUSB_DESC_SET_LEN (0xB2)
+// WEBUSB
+#define USBD_WEBUSB_VENDOR_CODE (0x01)
+#define USBD_WINUSB_VENDOR_CODE (0x02)
+#define USBD_WINUSB_DESC_SET_LEN (0xB2)
 
-// #define WEBUSB_URL_STRINGS 'c', 'o', 'n', 's', 'o', 'l', 'e', '.', 'c', 'a', 'n', 'o', 'k', 'e', 'y', 's', '.', 'o', 'r', 'g'
-// #define URL_DESCRIPTOR_LENGTH (3 + 20)
+#define WEBUSB_URL_STRINGS 'c', 'o', 'n', 's', 'o', 'l', 'e', '.', 'c', 'a', 'n', 'o', 'k', 'e', 'y', 's', '.', 'o', 'r', 'g'
+#define URL_DESCRIPTOR_LENGTH (3 + 20)
 
-// const uint8_t USBD_WinUSBDescriptorSetDescriptor[USBD_WINUSB_DESC_SET_LEN] = {
-//     /*
-//      * WCID20 descriptor set descriptor
-//      */
-//     0x0A, 0x00,                     /* Descriptor size (10 bytes) */
-//     0x00, 0x00,                     /* MS OS 2.0 descriptor set header */
-//     0x00, 0x00, 0x03, 0x06,         /* Windows version (8.1) (0x06030000) */
-//     USBD_WINUSB_DESC_SET_LEN, 0x00, /* Size, MS OS 2.0 descriptor set */
+const uint8_t USBD_WinUSBDescriptorSetDescriptor[USBD_WINUSB_DESC_SET_LEN] = {
+    /*
+     * WCID20 descriptor set descriptor
+     */
+    0x0A, 0x00,                     /* Descriptor size (10 bytes) */
+    0x00, 0x00,                     /* MS OS 2.0 descriptor set header */
+    0x00, 0x00, 0x03, 0x06,         /* Windows version (8.1) (0x06030000) */
+    USBD_WINUSB_DESC_SET_LEN, 0x00, /* Size, MS OS 2.0 descriptor set */
 
-//     /*
-//      * WCID20 configuration subset descriptor
-//      */
-//     0x08, 0x00, /* wLength */
-//     0x01, 0x00, /* wDescriptorType */
-//     0x00,       /* configuration No.0 */
-//     0x00,       /* bReserved */
-//     0XA8, 0X00, /* Size, MS OS 2.0 configuration subset */
+    /*
+     * WCID20 configuration subset descriptor
+     */
+    0x08, 0x00, /* wLength */
+    0x01, 0x00, /* wDescriptorType */
+    0x00,       /* configuration No.0 */
+    0x00,       /* bReserved */
+    0XA8, 0X00, /* Size, MS OS 2.0 configuration subset */
 
-//     /*
-//      * WCID20 function subset descriptor
-//      */
-//     0x08, 0x00,     /* Descriptor size (8 bytes) */
-//     0x02, 0x00,     /* MS OS 2.0 function subset header  */
-//     ITF_NUM_WEBUSB, /* bFirstInterface */
-//     0x00,           /* bReserved */
-//     0xA0, 0x00,     /* wSubsetLength */
+    /*
+     * WCID20 function subset descriptor
+     */
+    0x08, 0x00,     /* Descriptor size (8 bytes) */
+    0x02, 0x00,     /* MS OS 2.0 function subset header  */
+    ITF_NUM_WEBUSB, /* bFirstInterface */
+    0x00,           /* bReserved */
+    0xA0, 0x00,     /* wSubsetLength */
 
-//     /*
-//      * WCID20 compatible ID descriptor
-//      */
-//     0x14, 0x00,                                     /* wLength  20 */
-//     0x03, 0x00,                                     /* MS_OS_20_FEATURE_COMPATIBLE_ID */
-//     'W', 'I', 'N', 'U', 'S', 'B', 0x00, 0x00,       /* cCID_8 */
-//     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* cSubCID_8 */
+    /*
+     * WCID20 compatible ID descriptor
+     */
+    0x14, 0x00,                                     /* wLength  20 */
+    0x03, 0x00,                                     /* MS_OS_20_FEATURE_COMPATIBLE_ID */
+    'W', 'I', 'N', 'U', 'S', 'B', 0x00, 0x00,       /* cCID_8 */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* cSubCID_8 */
 
-//     /*
-//      * WCID20 registry property descriptor
-//      */
-//     0x84, 0x00, /* wLength: 132 */
-//     0x04, 0x00, /*  wDescriptorType: MS_OS_20_FEATURE_REG_PROPERTY: 0x04 (Table 9) */
-//     0x07, 0x00, /* wPropertyDataType: REG_MULTI_SZ (Table 15) */
-//     0x2a, 0x00, /* wPropertyNameLength: */
-//     /* bPropertyName: “DeviceInterfaceGUID”  */
-//     'D', 0x00, 'e', 0x00, 'v', 0x00, 'i', 0x00, 'c', 0x00, 'e', 0x00, 'I', 0x00, 'n', 0x00, 't', 0x00, 'e', 0x00,
-//     'r', 0x00, 'f', 0x00, 'a', 0x00, 'c', 0x00, 'e', 0x00, 'G', 0x00, 'U', 0x00, 'I', 0x00, 'D', 0x00, 's', 0x00,
-//     0x00, 0x00,
-//     0x50, 0x00, /* wPropertyDataLength  */
-//     /* bPropertyData: “{312bb799-598d-4469-9ca3-535c1efcbb9c}” */
-//     '{', 0x00, '3', 0x00, '1', 0x00, '2', 0x00, 'b', 0x00, 'b', 0x00, '7', 0x00, '9', 0x00, '9', 0x00, '-', 0x00,
-//     '5', 0x00, '9', 0x00, '8', 0x00, 'd', 0x00, '-', 0x00, '4', 0x00, '4', 0x00, '6', 0x00, '9', 0x00, '-', 0x00,
-//     '9', 0x00, 'c', 0x00, 'a', 0x00, '3', 0x00, '-', 0x00, '5', 0x00, '3', 0x00, '5', 0x00, 'c', 0x00, '1', 0x00,
-//     'e', 0x00, 'f', 0x00, 'c', 0x00, 'b', 0x00, 'b', 0x00, '9', 0x00, 'c', 0x00, '}', 0x00, 0x00, 0x00, 0x00, 0x00};
+    /*
+     * WCID20 registry property descriptor
+     */
+    0x84, 0x00, /* wLength: 132 */
+    0x04, 0x00, /*  wDescriptorType: MS_OS_20_FEATURE_REG_PROPERTY: 0x04 (Table 9) */
+    0x07, 0x00, /* wPropertyDataType: REG_MULTI_SZ (Table 15) */
+    0x2a, 0x00, /* wPropertyNameLength: */
+    /* bPropertyName: “DeviceInterfaceGUID”  */
+    'D', 0x00, 'e', 0x00, 'v', 0x00, 'i', 0x00, 'c', 0x00, 'e', 0x00, 'I', 0x00, 'n', 0x00, 't', 0x00, 'e', 0x00,
+    'r', 0x00, 'f', 0x00, 'a', 0x00, 'c', 0x00, 'e', 0x00, 'G', 0x00, 'U', 0x00, 'I', 0x00, 'D', 0x00, 's', 0x00,
+    0x00, 0x00,
+    0x50, 0x00, /* wPropertyDataLength  */
+    /* bPropertyData: “{312bb799-598d-4469-9ca3-535c1efcbb9c}” */
+    '{', 0x00, '3', 0x00, '1', 0x00, '2', 0x00, 'b', 0x00, 'b', 0x00, '7', 0x00, '9', 0x00, '9', 0x00, '-', 0x00,
+    '5', 0x00, '9', 0x00, '8', 0x00, 'd', 0x00, '-', 0x00, '4', 0x00, '4', 0x00, '6', 0x00, '9', 0x00, '-', 0x00,
+    '9', 0x00, 'c', 0x00, 'a', 0x00, '3', 0x00, '-', 0x00, '5', 0x00, '3', 0x00, '5', 0x00, 'c', 0x00, '1', 0x00,
+    'e', 0x00, 'f', 0x00, 'c', 0x00, 'b', 0x00, 'b', 0x00, '9', 0x00, 'c', 0x00, '}', 0x00, 0x00, 0x00, 0x00, 0x00
+    // clang-format on
+};
 
-// const uint8_t USBD_WebUSBURLDescriptor[URL_DESCRIPTOR_LENGTH] = {
-//     URL_DESCRIPTOR_LENGTH,
-//     WEBUSB_URL_TYPE,
-//     WEBUSB_URL_SCHEME_HTTPS,
-//     WEBUSB_URL_STRINGS};
+const uint8_t USBD_WebUSBURLDescriptor[URL_DESCRIPTOR_LENGTH] = {
+    URL_DESCRIPTOR_LENGTH,
+    WEBUSB_URL_TYPE,
+    WEBUSB_URL_SCHEME_HTTPS,
+    WEBUSB_URL_STRINGS};
 
-// #define USBD_BOS_WTOTALLENGTH 0x39
+#define USBD_BOS_WTOTALLENGTH 0x39
 
-// #define LANDING_PAGE 0x01
-// uint8_t USBD_BinaryObjectStoreDescriptor[USBD_BOS_WTOTALLENGTH] = {
-//     /*
-//      * WCID20 BOS descriptor
-//      */
-//     0x05,                        /* bLength */
-//     0x0F,                        /* bDescriptorType */
-//     USBD_BOS_WTOTALLENGTH, 0x00, /* wTotalLength */
-//     0x02,                        /* bNumDeviceCaps */
+#define LANDING_PAGE 0x01
+uint8_t USBD_BinaryObjectStoreDescriptor[USBD_BOS_WTOTALLENGTH] = {
+    /*
+     * WCID20 BOS descriptor
+     */
+    0x05,                        /* bLength */
+    0x0F,                        /* bDescriptorType */
+    USBD_BOS_WTOTALLENGTH, 0x00, /* wTotalLength */
+    0x02,                        /* bNumDeviceCaps */
 
-//     /*
-//      * WCID20 WebUSB Platform capability descriptor
-//      */
-//     0x18, /* Descriptor size (24 bytes) */
-//     0x10, /* Descriptor type (Device Capability) */
-//     0x05, /* Capability type (Platform) */
-//     0x00, /* Reserved */
+    /*
+     * WCID20 WebUSB Platform capability descriptor
+     */
+    0x18, /* Descriptor size (24 bytes) */
+    0x10, /* Descriptor type (Device Capability) */
+    0x05, /* Capability type (Platform) */
+    0x00, /* Reserved */
 
-//     /* WebUSB Platform Capability ID (3408b638-09a9-47a0-8bfd-a0768815b665) */
-//     0x38, 0xB6, 0x08, 0x34,
-//     0xA9, 0x09, 0xA0, 0x47,
-//     0x8B, 0xFD, 0xA0, 0x76,
-//     0x88, 0x15, 0xB6, 0x65,
-//     0x00, 0x01,              /* WebUSB version 1.0 */
-//     USBD_WEBUSB_VENDOR_CODE, /* Vendor-assigned WebUSB request code */
-//     LANDING_PAGE,            /* Landing page */
+    /* WebUSB Platform Capability ID (3408b638-09a9-47a0-8bfd-a0768815b665) */
+    0x38, 0xB6, 0x08, 0x34,
+    0xA9, 0x09, 0xA0, 0x47,
+    0x8B, 0xFD, 0xA0, 0x76,
+    0x88, 0x15, 0xB6, 0x65,
+    0x00, 0x01,              /* WebUSB version 1.0 */
+    USBD_WEBUSB_VENDOR_CODE, /* Vendor-assigned WebUSB request code */
+    LANDING_PAGE,            /* Landing page */
 
-//     /*
-//      *WCID20 device capability descriptor
-//      */
-//     0x1C, /* Descriptor size (28 bytes) */
-//     0x10, /* Descriptor type (Device Capability) */
-//     0x05, /* Capability type (Platform) */
-//     0x00, /* Reserved */
+    /*
+     *WCID20 device capability descriptor
+     */
+    0x1C, /* Descriptor size (28 bytes) */
+    0x10, /* Descriptor type (Device Capability) */
+    0x05, /* Capability type (Platform) */
+    0x00, /* Reserved */
 
-//     0xDF, 0x60, 0xDD, 0xD8, /* PlatformCapabilityUUID */
-//     0x89, 0x45, 0xC7, 0x4C,
-//     0x9C, 0xD2, 0x65, 0x9D,
-//     0x9E, 0x64, 0x8A, 0x9F,
-//     0x00, 0x00, 0x03, 0x06,         /* >= Win 8.1 * dwWindowsVersion */
-//     USBD_WINUSB_DESC_SET_LEN, 0X00, /* wDescriptorSetTotalLength */
-//     USBD_WINUSB_VENDOR_CODE,        /* bVendorCode */
-//     0X00                            /* bAltEnumCode */
-// };
+    0xDF, 0x60, 0xDD, 0xD8, /* PlatformCapabilityUUID */
+    0x89, 0x45, 0xC7, 0x4C,
+    0x9C, 0xD2, 0x65, 0x9D,
+    0x9E, 0x64, 0x8A, 0x9F,
+    0x00, 0x00, 0x03, 0x06,         /* >= Win 8.1 * dwWindowsVersion */
+    USBD_WINUSB_DESC_SET_LEN, 0X00, /* wDescriptorSetTotalLength */
+    USBD_WINUSB_VENDOR_CODE,        /* bVendorCode */
+    0X00                            /* bAltEnumCode */
+                                    // clang-format on
+};
 
-// struct usb_webusb_descriptor webusb_url_desc = {
-//     .vendor_code = USBD_WEBUSB_VENDOR_CODE,
-//     .string = USBD_WebUSBURLDescriptor,
-//     .string_len = USBD_WINUSB_DESC_SET_LEN};
+struct usb_webusb_descriptor webusb_url_desc = {
+    .vendor_code = USBD_WEBUSB_VENDOR_CODE,
+    .string = USBD_WebUSBURLDescriptor,
+    .string_len = USBD_WINUSB_DESC_SET_LEN};
 
-// struct usb_msosv2_descriptor msosv2_desc = {
-//     .vendor_code = USBD_WINUSB_VENDOR_CODE,
-//     .compat_id = USBD_WinUSBDescriptorSetDescriptor,
-//     .compat_id_len = USBD_WINUSB_DESC_SET_LEN,
-// };
+struct usb_msosv2_descriptor msosv2_desc = {
+    .vendor_code = USBD_WINUSB_VENDOR_CODE,
+    .compat_id = USBD_WinUSBDescriptorSetDescriptor,
+    .compat_id_len = USBD_WINUSB_DESC_SET_LEN,
+};
 
-// struct usb_bos_descriptor bos_desc = {
-//     .string = USBD_BinaryObjectStoreDescriptor,
-//     .string_len = USBD_BOS_WTOTALLENGTH};
+struct usb_bos_descriptor bos_desc = {
+    .string = USBD_BinaryObjectStoreDescriptor,
+    .string_len = USBD_BOS_WTOTALLENGTH};
 
-#define USB_CONFIG_SIZE (9 + 9 + 54 + 14 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN)
-// #define USB_CONFIG_SIZE (9 + 9 + 54 + 14 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN + 9)
-// #define USB_CONFIG_SIZE (134)
+// #define USB_CONFIG_SIZE (9 + 9 + 54 + 14 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN)
+#define USB_CONFIG_SIZE (9 + 9 + 54 + 14 + HID_CUSTOM_INOUT_DESCRIPTOR_LEN + HID_KEYBOARD_DESCRIPTOR_LEN + 9)
 
 static const uint8_t device_descriptor[] = {
-    USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0002, 0x01)};
-// USB_DEVICE_DESCRIPTOR_INIT(USB_2_1, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0002, 0x01)};
+    // USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0002, 0x01)};
+    USB_DEVICE_DESCRIPTOR_INIT(USB_2_1, 0x00, 0x00, 0x00, USBD_VID, USBD_PID, 0x0002, 0x01)};
 
 static const uint8_t config_descriptor_hs[] = {
     USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, ITF_NUM_TOTAL, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
@@ -194,7 +196,7 @@ static const uint8_t config_descriptor_hs[] = {
     /************** Descriptor of KBDHID interface ****************/
     HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     /************** Descriptor of CCID interface ****************/
-    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 0),
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
     0x36,                                        /* bLength: CCID Descriptor size */
     0x21,                                        /* bDescriptorType: Functional Descriptor type. */
@@ -223,8 +225,8 @@ static const uint8_t config_descriptor_hs[] = {
     CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of WEBUSB interface ****************/
-    // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
+    /************** Descriptor of WEBUSB interface ****************/
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
 };
 
@@ -235,7 +237,7 @@ static const uint8_t config_descriptor_fs[] = {
     /************** Descriptor of KBDHID interface ****************/
     HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     /************** Descriptor of CCID interface ****************/
-    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 0),
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
     0x36,                                        /* bLength: CCID Descriptor size */
     0x21,                                        /* bDescriptorType: Functional Descriptor type. */
@@ -264,8 +266,8 @@ static const uint8_t config_descriptor_fs[] = {
     CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of WEBUSB interface ****************/
-    // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
+    /************** Descriptor of WEBUSB interface ****************/
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
 };
 
@@ -280,7 +282,7 @@ static const uint8_t other_speed_config_descriptor_hs[] = {
     /************** Descriptor of KBDHID interface ****************/
     HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     /************** Descriptor of CCID interface ****************/
-    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 0),
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
     0x36,                                        /* bLength: CCID Descriptor size */
     0x21,                                        /* bDescriptorType: Functional Descriptor type. */
@@ -309,8 +311,8 @@ static const uint8_t other_speed_config_descriptor_hs[] = {
     CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of WEBUSB interface ****************/
-    // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
+    /************** Descriptor of WEBUSB interface ****************/
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
 };
 
@@ -321,7 +323,7 @@ static const uint8_t other_speed_config_descriptor_fs[] = {
     /************** Descriptor of KBDHID interface ****************/
     HID_KEYBOARD_DESCRIPTOR_INIT(ITF_NUM_KBDHID, 0x00, HID_KBDHID_REPORT_DESC_SIZE, KBDHID_INT_EP, KBDHID_INT_EP_SIZE, KBDHID_INT_EP_INTERVAL),
     /************** Descriptor of CCID interface ****************/
-    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 0),
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_CCID, 0x00, 0x02, USB_DEVICE_CLASS_SMART_CARD, 0x00, 0x00, 4),
     /******************** Descriptor of CCID *************************/
     0x36,                                        /* bLength: CCID Descriptor size */
     0x21,                                        /* bDescriptorType: Functional Descriptor type. */
@@ -350,8 +352,8 @@ static const uint8_t other_speed_config_descriptor_fs[] = {
     CCID_NUMBER_OF_SLOTS,                        /* bMaxCCIDBusySlots*/
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_IN_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
     USB_ENDPOINT_DESCRIPTOR_INIT(CCID_OUT_EP, USB_ENDPOINT_TYPE_BULK, CCID_EP_MPS_HS, 0x00),
-    // /************** Descriptor of WEBUSB interface ****************/
-    // USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
+    /************** Descriptor of WEBUSB interface ****************/
+    USB_INTERFACE_DESCRIPTOR_INIT(ITF_NUM_WEBUSB, 0x00, 0x00, USB_DEVICE_CLASS_VEND_SPECIFIC, 0xFF, 0xFF, 5),
     // clang-format on
 };
 
@@ -360,10 +362,10 @@ static const char *const string_descriptors[] = {
     "HPMicro",                  /* Manufacturer */
     "Canokey-HPMicro",          /* Product */
     "2025022609",               /* Serial Number */
+    "OpenPGP PIV OATH",
     // "FIDO2/U2F",
     // "Keyboard",
-    // "WebUSB"
-};
+    "WebUSB"};
 
 static const uint8_t *device_descriptor_callback(uint8_t speed)
 {
@@ -425,10 +427,9 @@ const struct usb_descriptor canokey_descriptor = {
     .device_quality_descriptor_callback = device_quality_descriptor_callback,
     .other_speed_descriptor_callback = other_speed_config_descriptor_callback,
     .string_descriptor_callback = string_descriptor_callback,
-    // .msosv2_descriptor = &msosv2_desc,
-    // .webusb_url_descriptor = &webusb_url_desc,
-    // .bos_descriptor = &bos_desc
-};
+    .msosv2_descriptor = &msosv2_desc,
+    .webusb_url_descriptor = &webusb_url_desc,
+    .bos_descriptor = &bos_desc};
 
 /*!< ctap hid report descriptor */
 static const uint8_t hid_ctaphid_report_desc[HID_CTAPHID_REPORT_DESC_SIZE] = {
@@ -530,6 +531,7 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
         CTAPHID_Init();
         KBDHID_Init();
         CCID_Init();
+        USBD_WEBUSB_Init();
         break;
     case USBD_EVENT_SET_REMOTE_WAKEUP:
         break;
@@ -673,8 +675,10 @@ struct usbd_endpoint ccid_in_ep = {
 
 struct usbd_interface ccid_intf;
 
-// struct usbd_interface webusbintf;
-// extern int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
+struct usbd_interface webusbintf;
+
+int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
+int USBD_WEBUSB_Setup2(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
 
 void canokey_init(uint8_t busid, uintptr_t reg_base)
 {
@@ -691,8 +695,9 @@ void canokey_init(uint8_t busid, uintptr_t reg_base)
     usbd_add_endpoint(busid, &ccid_out_ep);
     usbd_add_endpoint(busid, &ccid_in_ep);
 
-    // webusbintf.class_interface_handler = USBD_WEBUSB_Setup;
-    // usbd_add_interface(busid, &webusbintf);
+    webusbintf.class_interface_handler = USBD_WEBUSB_Setup;
+    webusbintf.vendor_handler = USBD_WEBUSB_Setup2;
+    usbd_add_interface(busid, &webusbintf);
 
     usbd_initialize(busid, reg_base, usbd_event_handler);
 }

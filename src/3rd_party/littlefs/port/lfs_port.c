@@ -7,6 +7,7 @@
 #include "fs.h"
 #include <ndef.h>
 #include <oath.h>
+#include <openpgp.h>
 #include <pass.h>
 #include <pin.h>
 #include <piv.h>
@@ -14,7 +15,7 @@
 #include <ctap.h>
 
 #define READ_SIZE 32
-#define STORAGE_SECTOR 40
+#define STORAGE_SECTOR 80
 #define FLASH_ADDR(b, o) (nor_config.base_addr + (b) * nor_config.sector_size + (o))
 #define LOOKAHEAD_SIZE 512
 
@@ -107,6 +108,7 @@ void littlefs_init(void)
     printf("Formatting %02X\n", err);
     err = fs_mount(&config);
     printf("Remount %02X\n", err);
+    openpgp_install(1);
     piv_install(1);
     oath_install(1);
     ctap_install(1);
