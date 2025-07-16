@@ -12,7 +12,7 @@ static mbedtls_sha256_context sha256;
 static mbedtls_sha512_context sha512;
 #endif
 
-__attribute__((weak)) void sha1_init() {
+__attribute__((weak)) void sha1_init(void) {
 #ifdef USE_MBEDCRYPTO
   mbedtls_sha1_init(&sha1);
   mbedtls_sha1_starts_ret(&sha1);
@@ -43,7 +43,7 @@ void sha1_raw(const uint8_t *data, const size_t len, uint8_t digest[SHA1_DIGEST_
   sha1_final(digest);
 }
 
-__attribute__((weak)) void sha256_init() {
+__attribute__((weak)) void sha256_init(void) {
 #ifdef USE_MBEDCRYPTO
   mbedtls_sha256_init(&sha256);
   mbedtls_sha256_starts_ret(&sha256, 0);
@@ -74,7 +74,7 @@ void sha256_raw(const uint8_t *data, const size_t len, uint8_t digest[SHA256_DIG
   sha256_final(digest);
 }
 
-__attribute__((weak)) void sha512_init() {
+__attribute__((weak)) void sha512_init(void) {
 #ifdef USE_MBEDCRYPTO
   mbedtls_sha512_init(&sha512);
   mbedtls_sha512_starts_ret(&sha512, 0);

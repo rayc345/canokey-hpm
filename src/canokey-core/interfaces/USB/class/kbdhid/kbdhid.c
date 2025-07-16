@@ -124,14 +124,14 @@ static void KBDHID_TypeKeySeq(void) {
   }
 }
 
-void KBDHID_Eject() {
+void KBDHID_Eject(void) {
   key_sequence[0] = EJECT_KEY;
   key_sequence[1] = 0;
   key_seq_position = 0;
   state = KBDHID_Typing;
 }
 
-uint8_t KBDHID_Init() {
+uint8_t KBDHID_Init(void) {
   memset(&report, 0, sizeof(report));
   state = KBDHID_Idle;
   return 0;

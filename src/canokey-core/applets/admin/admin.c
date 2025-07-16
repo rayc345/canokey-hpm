@@ -6,6 +6,7 @@
 #include <fs.h>
 #include <ndef.h>
 #include <oath.h>
+#include <openpgp.h>
 #include <pass.h>
 #include <pin.h>
 #include <piv.h>
@@ -174,6 +175,8 @@ static int admin_factory_reset(const CAPDU *capdu, RAPDU *rapdu) {
 #endif
 
   DBG_MSG("factory reset begins\n");
+  ret = openpgp_install(1);
+  if (ret < 0) return ret;
   ret = piv_install(1);
   if (ret < 0) return ret;
   ret = oath_install(1);
@@ -242,6 +245,15 @@ int admin_process_apdu(const CAPDU *capdu, RAPDU *rapdu) {
 #endif
 
   switch (INS) {
+  case ADMIN_INS_WRITE_FIDO_PRIVATE_KEY:
+    ret = ctap_install_private_key(capdu, rapdu);
+    break;
+  case ADMIN_INS_WRITE_FIDO_CERT:
+    ret = ctap_install_cert(capdu, rapdu);
+    break;
+  case ADMIN_INS_RESET_OPENPGP:
+    ret = openpgp_install(1);
+    break;
   case ADMIN_INS_RESET_PIV:
     ret = piv_install(1);
     break;
@@ -259,6 +271,12 @@ int admin_process_apdu(const CAPDU *capdu, RAPDU *rapdu) {
     break;
   case ADMIN_INS_RESET_CTAP:
     ret = ctap_install(1);
+    break;
+  case ADMIN_INS_READ_CTAP_SM2_CONFIG:
+    ret = ctap_read_sm2_config(capdu, rapdu);
+    break;
+  case ADMIN_INS_WRITE_CTAP_SM2_CONFIG:
+    ret = ctap_write_sm2_config(capdu, rapdu);
     break;
   case ADMIN_INS_CHANGE_PIN:
     ret = admin_change_pin(capdu, rapdu);

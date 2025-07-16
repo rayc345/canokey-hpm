@@ -43,9 +43,12 @@
 #define ALG_RSA_2048  0x07
 #define ALG_ECC_256   0x11
 #define ALG_ECC_384   0x14
+#define ALG_ED25519_DEFAULT   0xE0
 #define ALG_RSA_3072_DEFAULT  0x05 // defined in NIST SP 800-78-5 (Initial Public Draft)
 #define ALG_RSA_4096_DEFAULT  0x16
+#define ALG_X25519_DEFAULT    0xE1
 #define ALG_SECP256K1_DEFAULT 0x53
+#define ALG_SM2_DEFAULT       0x54
 
 #define TDEA_BLOCK_SIZE      8
 
@@ -133,9 +136,12 @@ static key_type_t algo_id_to_key_type(const uint8_t id) {
   }
 
   if (alg_ext_cfg.enabled == 0) return KEY_TYPE_PKC_END;
+  if (id == alg_ext_cfg.ed25519) return ED25519;
   if (id == alg_ext_cfg.rsa3072) return RSA3072;
   if (id == alg_ext_cfg.rsa4096) return RSA4096;
+  if (id == alg_ext_cfg.x25519) return X25519;
   if (id == alg_ext_cfg.secp256k1) return SECP256K1;
+  if (id == alg_ext_cfg.sm2) return SM2;
   return KEY_TYPE_PKC_END;
 }
 
@@ -147,8 +153,14 @@ static uint8_t key_type_to_algo_id(const key_type_t type) {
     return ALG_ECC_384;
   case RSA2048:
     return ALG_RSA_2048;
+  case ED25519:
+    return alg_ext_cfg.ed25519;
+  case X25519:
+    return alg_ext_cfg.x25519;
   case SECP256K1:
     return alg_ext_cfg.secp256k1;
+  case SM2:
+    return alg_ext_cfg.sm2;
   case RSA3072:
     return alg_ext_cfg.rsa3072;
   case RSA4096:
@@ -245,9 +257,12 @@ int piv_install(const uint8_t reset) {
   if (get_file_size(ALGORITHM_EXT_CONFIG_PATH) == sizeof(alg_ext_cfg))  return 0;
   // Algorithm extensions
   alg_ext_cfg.enabled = 1;
+  alg_ext_cfg.ed25519 = ALG_ED25519_DEFAULT;
   alg_ext_cfg.rsa3072 = ALG_RSA_3072_DEFAULT;
   alg_ext_cfg.rsa4096 = ALG_RSA_4096_DEFAULT;
+  alg_ext_cfg.x25519 = ALG_X25519_DEFAULT;
   alg_ext_cfg.secp256k1 = ALG_SECP256K1_DEFAULT;
+  alg_ext_cfg.sm2 = ALG_SM2_DEFAULT;
   if (write_file(ALGORITHM_EXT_CONFIG_PATH, &alg_ext_cfg, 0, sizeof(alg_ext_cfg), 1) < 0) return -1;
 
   return 0;
@@ -976,7 +991,7 @@ static int piv_get_metadata(const CAPDU *capdu, RAPDU *rapdu) {
     case 0x81:  // PUK
     {
       const pin_t *p = P2 == 0x80 ? &pin : &puk;
-      int8_t default_value;
+      uint8_t default_value;
       if (read_attr(p->path, TAG_PIN_KEY_DEFAULT, &default_value, 1) < 0) return -1;
       const int default_retries = pin_get_default_retries(p);
       if (default_value < 0) return -1;

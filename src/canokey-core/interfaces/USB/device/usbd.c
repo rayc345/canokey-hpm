@@ -602,7 +602,7 @@ uint8_t USBD_KBDHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len)
     return usbd_ep_start_write(busid, KBDHID_INT_EP, kbdhid_buffer, len);
 }
 
-uint8_t USBD_KBDHID_IsIdle()
+uint8_t USBD_KBDHID_IsIdle(void)
 {
     return kbdhid_state == KBDHID_IDLE;
 }
