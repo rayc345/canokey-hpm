@@ -6,6 +6,7 @@
 #include <device.h>
 #include <kbdhid.h>
 #include <webusb.h>
+#include <tusb.h>
 
 volatile static uint8_t touch_result;
 static uint8_t has_rf;
@@ -16,11 +17,20 @@ volatile static wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, he
 
 uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 
+// Called when usb device is connected and initialized
+void device_mounted() {
+  ccid_init();
+  ctap_hid_init(CTAPHID_SendReport);
+  webusb_init();
+  kbd_hid_init();
+}
+
 void device_loop(void) {
-  CCID_Loop();
-  CTAPHID_Loop(0);
-  WebUSB_Loop();
-  KBDHID_Loop();
+  tud_task(); // TinyUSB stack task
+  ccid_loop();
+  ctap_hid_loop(0);
+  webusb_loop(); 
+  kbd_hid_loop();
 }
 
 bool device_allow_kbd_touch(void) {
@@ -69,8 +79,8 @@ uint8_t wait_for_user_presence(uint8_t entry) {
     // Keep blinking, in case other applet stops it 
     start_blinking(0);
     // Nested CCID processing is not allowed
-    if (entry != WAIT_ENTRY_CCID) CCID_Loop();
-    if (CTAPHID_Loop(entry == WAIT_ENTRY_CTAPHID) == LOOP_CANCEL) {
+    if (entry != WAIT_ENTRY_CCID) ccid_loop();
+    if (ctap_hid_loop(entry == WAIT_ENTRY_CTAPHID) == LOOP_CANCEL) {
       DBG_MSG("Cancelled by host\n");
       stop_blinking();
       wait_status = WAIT_NONE;

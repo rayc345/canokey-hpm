@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
+#include <tusb.h>
+
 #include <admin.h>
 #include <common.h>
 #include <device.h>
-#include <kbdhid.h>
-#include <usbd.h>
 #include <pass.h>
+
+#include <kbdhid.h>
+#include <usb_descriptors.h>
 
 #define EJECT_KEY 0x03
 
@@ -16,7 +19,6 @@ static enum {
 } state;
 static char key_sequence[PASS_MAX_PASSWORD_LENGTH + 2]; // one for enter and one for '\0'
 static uint8_t key_seq_position;
-static keyboard_report_t report;
 
 static uint8_t ascii2keycode(char ch) {
   const uint8_t shift = 0x80; // Shift key flag
@@ -74,49 +76,51 @@ static uint8_t ascii2keycode(char ch) {
 }
 
 static void KBDHID_TypeKeySeq(void) {
+  static uint8_t modifier, keycode[6];
   switch (state) {
   case KBDHID_Idle:
     break;
+
   case KBDHID_Typing:
   case KBDHID_KeyUp:
     if (key_sequence[key_seq_position] == '\0') {
       DBG_MSG("Key typing ended\n");
       state = KBDHID_Idle;
-    } else if (USBD_KBDHID_IsIdle()) {
+    } else if (tud_hid_n_ready(HID_ITF_KBD)) {
+      uint8_t report_id = 1;
       if (key_sequence[key_seq_position] == EJECT_KEY) {
-        report.id = 2;
-        report.modifier = 0xB8;
-        // Emulate the key press
-        USBD_KBDHID_SendReport(0, (uint8_t *)&report, 2);
+        report_id = 2;
+        keycode[0] = 0;
+        modifier = 0xB8;
       } else {
-        uint8_t keycode = ascii2keycode(key_sequence[key_seq_position]);
-        if (keycode & 0x80) { // Check for shift flag
-          report.modifier = 0x02; // Shift key
-          keycode &= 0x7F; // Clear shift flag
+        // Emulate key down
+        keycode[0] = ascii2keycode(key_sequence[key_seq_position]);
+        if (keycode[0] & 0x80) { // Check for shift flag
+          modifier = 0x02; // Shift key
+          keycode[0] &= 0x7F; // Clear shift flag
         } else {
-          report.modifier = 0; // No modifier key
+          modifier = 0; // No modifier key
         }
-        report.keycode[0] = keycode;
-        report.id = 1;
-        // Emulate the key press
-        USBD_KBDHID_SendReport(0, (uint8_t *) &report, sizeof(report));
       }
+      tud_hid_n_keyboard_report(HID_ITF_KBD, report_id, modifier, keycode);
+
       state = KBDHID_KeyDown;
     }
     break;
 
   case KBDHID_KeyDown:
-    if (USBD_KBDHID_IsIdle()) {
-      memset(&report, 0, sizeof(report)); // Clear the report
-        if (key_sequence[key_seq_position] == EJECT_KEY) {
-          report.id = 2;
-          // Emulate the key release
-          USBD_KBDHID_SendReport(0, (uint8_t *)&report, 2);
-        } else {
-          report.id = 1;
-          // Emulate the key release
-          USBD_KBDHID_SendReport(0, (uint8_t *) &report, sizeof(report));
-        }
+    if (tud_hid_n_ready(HID_ITF_KBD)) {
+      // Emulate key release
+      modifier = 0;
+      keycode[0] = 0;
+      if (key_sequence[key_seq_position] == EJECT_KEY) {
+        // Emulate the key release
+        tud_hid_n_keyboard_report(HID_ITF_KBD, 2, modifier, keycode);
+      } else {
+        // Emulate the key release
+        tud_hid_n_keyboard_report(HID_ITF_KBD, 1, modifier, keycode);
+      }
+
       key_seq_position++;
       state = KBDHID_KeyUp;
       break;
@@ -124,20 +128,20 @@ static void KBDHID_TypeKeySeq(void) {
   }
 }
 
-void KBDHID_Eject(void) {
+void KBDHID_Eject() {
   key_sequence[0] = EJECT_KEY;
   key_sequence[1] = 0;
   key_seq_position = 0;
   state = KBDHID_Typing;
 }
 
-uint8_t KBDHID_Init(void) {
-  memset(&report, 0, sizeof(report));
+void kbd_hid_init(void) {
   state = KBDHID_Idle;
-  return 0;
+
+  key_seq_position = 0;
 }
 
-uint8_t KBDHID_Loop(void) {
+void kbd_hid_loop(void) {
   if (state == KBDHID_Idle && device_allow_kbd_touch()) {
     const uint8_t touch = get_touch_result();
     if (touch != TOUCH_NO) {
@@ -145,7 +149,7 @@ uint8_t KBDHID_Loop(void) {
       set_touch_result(TOUCH_NO);
       if (len <= 0) {
         DBG_MSG("Do nothing\n");
-        return 0;
+        return;
       }
       key_sequence[len] = 0;
       key_seq_position = 0;
@@ -155,5 +159,33 @@ uint8_t KBDHID_Loop(void) {
   } else {
     KBDHID_TypeKeySeq();
   }
+
+}
+
+//--------------------------------------------------------------------+
+// TinyUSB callbacks
+//--------------------------------------------------------------------+
+
+// Invoked when sent REPORT successfully to host
+void kbd_hid_report_complete_cb(uint8_t const *report, uint8_t len) {
+  // There is nothing to do...
+
+  (void)len;
+}
+
+// Invoked when received GET_REPORT control request
+uint16_t kbd_hid_get_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen) {
+  // not implemented, stall the request
+  (void)report_id;
+  (void)report_type;
+  (void)buffer;
+  (void)reqlen;
+
   return 0;
+}
+
+// Invoked when received SET_REPORT control request or
+// received data on OUT endpoint ( Report ID = 0, Type = 0 )
+void kbd_hid_set_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize) {
+  // There is nothing to do...
 }

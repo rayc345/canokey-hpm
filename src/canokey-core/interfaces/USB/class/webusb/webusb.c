@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "usbd_core.h"
+#include <tusb.h>
+#include <usb_descriptors.h>
+
 #include <apdu.h>
 #include <ccid.h>
 #include <device.h>
@@ -20,15 +22,21 @@ static CAPDU apdu_cmd;
 static RAPDU apdu_resp;
 static uint32_t last_keepalive;
 
-uint8_t USBD_WEBUSB_Init(void) {
+//==============================================================================
+// WEBUSB functions
+//==============================================================================
+
+//==============================================================================
+// Class init and loop
+//==============================================================================
+void webusb_init() {
   state = STATE_IDLE;
   apdu_cmd.data = global_buffer;
   apdu_resp.data = global_buffer;
   last_keepalive = 0;
-  return 0;
 }
 
-void WebUSB_Loop(void) {
+void webusb_loop() {
   if (device_get_tick() - last_keepalive > 2000 && state == STATE_HOLD_BUF) {
     DBG_MSG("Release buffer after time-out\n");
     release_apdu_buffer(BUFFER_OWNER_WEBUSB);
@@ -59,178 +67,130 @@ void WebUSB_Loop(void) {
   state = STATE_SENDING_RESP;
 }
 
-uint8_t USBD_WEBUSB_TxSent(uint8_t busid) {
-  //DBG_MSG("state = %d\n", state);
-  if (state == STATE_SENT_RESP) {
-    // release_apdu_buffer(BUFFER_OWNER_WEBUSB);
-    state = STATE_HOLD_BUF;
+//==============================================================================
+// TinyUSB stack callbacks
+//==============================================================================
+
+//--------------------------------------------------------------------+
+// WebUSB use vendor class
+//--------------------------------------------------------------------+
+// Invoked when a control transfer occurred on an interface of this class
+// Driver response accordingly to the request and the transfer stage (setup/data/ack)
+// return false to stall control endpoint (e.g unsupported request)
+bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request) {
+  if (stage != CONTROL_STAGE_SETUP) return webusb_control_xfer_complete_cb(rhport, stage, request);
+
+  // we are only interested in vendor requests
+  if (request->bmRequestType_bit.type != TUSB_REQ_TYPE_VENDOR) return false;
+
+  // parse recipient
+  switch (request->bmRequestType_bit.recipient) {
+  case TUSB_REQ_RCPT_DEVICE:
+    return webusb_handle_device_request(rhport, request);
+  case TUSB_REQ_RCPT_INTERFACE:
+    return webusb_handle_interface_request(rhport, request);
+  default:
+    return false;
   }
-  return 0;
 }
 
-uint8_t USBD_WEBUSB_RxReady(uint8_t busid) {
-  //  state should be STATE_RECVING now
-  state = STATE_PROCESS;
-  return 0;
+bool webusb_control_xfer_complete_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
+  // if(state != STATE_IDLE)
+  //   DBG_MSG("state=%u stage=%u recipient=%02X\r\n",state, stage, request->bmRequestType_bit.recipient);
+  switch (state)
+  {
+  case STATE_RECVING:
+    if (stage == CONTROL_STAGE_ACK)
+      state = STATE_PROCESS;
+    break;
+
+  case STATE_SENT_RESP:
+    if (stage == CONTROL_STAGE_ACK) {
+      // release_apdu_buffer(BUFFER_OWNER_WEBUSB);
+      state = STATE_HOLD_BUF;
+    }
+    break;
+
+  default:
+    break;
+  }
+  return true;
 }
 
-// // Recipient = interface
-// bool webusb_handle_interface_request(uint8_t rhport, uint8_t request) {
-//   // DBG_MSG("bRequest=%d, wLength=%d\r\n", request->bRequest, request->wLength);
+// Recipient = device, for BOS and URL descriptors
+bool webusb_handle_device_request(uint8_t rhport, tusb_control_request_t const *request) {
+  switch (request->bRequest) {
+  case VENDOR_REQUEST_WEBUSB:
+    // match vendor request in BOS descriptor
+    // Get landing page url
+    return tud_control_xfer(rhport, request, (void *)(uintptr_t)&desc_url, desc_url.bLength);
 
-//   last_keepalive = device_get_tick();
-//   switch (request->bRequest) {
-//   case WEBUSB_REQ_CMD:
-//     if (state != STATE_IDLE && state != STATE_HOLD_BUF) {
-//       ERR_MSG("Wrong state %d\n", state);
-//       return false;
-//     }
-//     if (acquire_apdu_buffer(BUFFER_OWNER_WEBUSB) != 0) {
-//       ERR_MSG("Busy\n");
-//       return false;
-//     }
-//     state = STATE_HOLD_BUF;
-//     //DBG_MSG("Buf Acquired\n");
-//     if (request->wLength > APDU_BUFFER_SIZE) {
-//       ERR_MSG("Overflow\n");
-//       return false;
-//     }
-//     if (request->wLength == 0) return true; // Host shouldn't send an empty command
-//     // usbd_control_set_complete_callback(webusb_control_xfer_complete_cb);
-//     DBG_MSG("Recv data %u bytes\n", request->wLength);
-//     tud_control_xfer(rhport, request, global_buffer, request->wLength);
-//     apdu_buffer_size = request->wLength;
-//     state = STATE_RECVING;
-//     return true;
+  case VENDOR_REQUEST_MICROSOFT:
+    if (request->wIndex == 7) {
+      // Get Microsoft OS 2.0 compatible descriptor
+      uint16_t total_len;
+      memcpy(&total_len, desc_ms_os_20 + 8, 2);
 
-//   case WEBUSB_REQ_RESP:
-//     if (state == STATE_SENDING_RESP) {
-//       uint16_t len = MIN(apdu_buffer_size, request->wLength);
-//       DBG_MSG("Send data %u bytes\n", len);
-//       tud_control_xfer(rhport, request, global_buffer, len);
-//       state = STATE_SENT_RESP;
-//     } else {
-//       return false;
-//     }
-//     return true;
-
-//   case WEBUSB_REQ_STAT:
-//     // DBG_MSG("Send data %u bytes\n", 1);
-//     tud_control_xfer(rhport, request, (uint8_t*)&state, 1);
-//     return true;
-
-//   }
-
-//   // stall unknown request
-//   return false;
-// }
-
-int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
-    (void)busid;
-    (void)data;
-    (void)len;
-
-    USB_LOG_DBG("Vendor Class request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
-
-    switch (setup->bRequest)
-    {
-        // case 0x22:
-        //     if (setup->wValue != 0)
-        //     {
-        //         // board_led_write(!board_get_led_gpio_off_level());
-        //     }
-        //     else
-        //     {
-        //         // board_led_write(board_get_led_gpio_off_level());
-        //     }
-        //     break;
-
-    default:
-        USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
-        return -1;
+      return tud_control_xfer(rhport, request, (void *)(uintptr_t)desc_ms_os_20, total_len);
+    } else {
+      return false;
     }
 
-    return 0;
+  default:
+    break;
+  }
+
+  // stall unknown request
+  return false;
 }
 
-int USBD_WEBUSB_Setup2(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
-    (void)busid;
-    (void)data;
-    (void)len;
+// Recipient = interface
+bool webusb_handle_interface_request(uint8_t rhport, tusb_control_request_t const *request) {
+  // DBG_MSG("bRequest=%d, wLength=%d\r\n", request->bRequest, request->wLength);
 
-    USB_LOG_DBG("Vendor 2 request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
-
-    switch (setup->bRequest)
-    {
-        // case 0x22:
-        //     if (setup->wValue != 0)
-        //     {
-        //         // board_led_write(!board_get_led_gpio_off_level());
-        //     }
-        //     else
-        //     {
-        //         // board_led_write(board_get_led_gpio_off_level());
-        //     }
-        //     break;
-
-    default:
-        USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
-        return -1;
+  last_keepalive = device_get_tick();
+  switch (request->bRequest) {
+  case WEBUSB_REQ_CMD:
+    if (state != STATE_IDLE && state != STATE_HOLD_BUF) {
+      ERR_MSG("Wrong state %d\n", state);
+      return false;
     }
+    if (acquire_apdu_buffer(BUFFER_OWNER_WEBUSB) != 0) {
+      ERR_MSG("Busy\n");
+      return false;
+    }
+    state = STATE_HOLD_BUF;
+    //DBG_MSG("Buf Acquired\n");
+    if (request->wLength > APDU_BUFFER_SIZE) {
+      ERR_MSG("Overflow\n");
+      return false;
+    }
+    if (request->wLength == 0) return true; // Host shouldn't send an empty command
+    // usbd_control_set_complete_callback(webusb_control_xfer_complete_cb);
+    DBG_MSG("Recv data %u bytes\n", request->wLength);
+    tud_control_xfer(rhport, request, global_buffer, request->wLength);
+    apdu_buffer_size = request->wLength;
+    state = STATE_RECVING;
+    return true;
 
-    return 0;
+  case WEBUSB_REQ_RESP:
+    if (state == STATE_SENDING_RESP) {
+      uint16_t len = MIN(apdu_buffer_size, request->wLength);
+      DBG_MSG("Send data %u bytes\n", len);
+      tud_control_xfer(rhport, request, global_buffer, len);
+      state = STATE_SENT_RESP;
+    } else {
+      return false;
+    }
+    return true;
+
+  case WEBUSB_REQ_STAT:
+    // DBG_MSG("Send data %u bytes\n", 1);
+    tud_control_xfer(rhport, request, (uint8_t*)&state, 1);
+    return true;
+
+  }
+
+  // stall unknown request
+  return false;
 }
-
-// int8_t USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
-//   // CCID_eject();
-//   last_keepalive = device_get_tick();
-//   switch (req->bRequest) {
-//   case WEBUSB_REQ_CMD:
-//     if (state != STATE_IDLE && state != STATE_HOLD_BUF) {
-//       ERR_MSG("Wrong state %d\n", state);
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     if (acquire_apdu_buffer(BUFFER_OWNER_WEBUSB) != 0) {
-//       ERR_MSG("Busy\n");
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     state = STATE_HOLD_BUF;
-//     //DBG_MSG("Buf Acquired\n");
-//     if (req->wLength > APDU_BUFFER_SIZE) {
-//       ERR_MSG("Overflow\n");
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     USBD_CtlPrepareRx(pdev, global_buffer, req->wLength);
-//     apdu_buffer_size = req->wLength;
-//     state = STATE_RECVING;
-//     break;
-
-//   case WEBUSB_REQ_RESP:
-//     if (state == STATE_SENDING_RESP) {
-//       uint16_t len = MIN(apdu_buffer_size, req->wLength);
-//       USBD_CtlSendData(pdev, global_buffer, len, WEBUSB_EP0_SENDER);
-//       state = STATE_SENT_RESP;
-//     } else {
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     break;
-
-//   case WEBUSB_REQ_STAT:
-//     USBD_CtlSendData(pdev, (uint8_t*)&state, 1, WEBUSB_EP0_SENDER);
-//     break;
-
-//   default:
-//     USBD_CtlError(pdev, req);
-//     return USBD_FAIL;
-//   }
-
-//   return 0;
-// }
