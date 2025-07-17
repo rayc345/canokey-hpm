@@ -75,15 +75,6 @@ hpm_stat_t nor_flash_write(nor_flash_config_t *cfg, const uint8_t *buf, uint32_t
  */
 hpm_stat_t nor_flash_erase_sector(nor_flash_config_t *cfg, uint32_t start_addr);
 
-/**
- * @brief hpm nor-flash erase function
- * 
- * @param[in] cfg config_context
- * @param[in] start_addr erase physical start addr
- * @param[in] size erase bytes size
- */
-void nor_flash_erase(nor_flash_config_t *cfg, uint32_t start_addr, uint32_t size);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus  */

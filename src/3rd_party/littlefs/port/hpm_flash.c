@@ -76,13 +76,3 @@ hpm_stat_t nor_flash_erase_sector(nor_flash_config_t *cfg, uint32_t start_addr)
     e2p_exit_critical();
     return status;
 }
-
-E2P_ATTR
-void nor_flash_erase(nor_flash_config_t *cfg, uint32_t start_addr, uint32_t size)
-{
-    uint32_t sector_size = cfg->sector_size;
-    for (uint32_t i = 0; i < size / sector_size; i++)
-    {
-        nor_flash_erase_sector(cfg, start_addr + i * sector_size);
-    }
-}
