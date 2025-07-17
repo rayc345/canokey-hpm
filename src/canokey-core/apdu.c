@@ -239,13 +239,3 @@ void process_apdu(CAPDU *capdu, RAPDU *rapdu) {
     SW = SW_CHECKING_ERROR;
   }
 }
-
-// int acquire_apdu_buffer(uint8_t owner) {
-//   device_atomic_compare_and_swap(&buffer_owner, BUFFER_OWNER_NONE, owner);
-//   return buffer_owner == owner ? 0 : -1;
-// }
-
-// int release_apdu_buffer(uint8_t owner) {
-//   device_atomic_compare_and_swap(&buffer_owner, owner, BUFFER_OWNER_NONE);
-//   return buffer_owner == BUFFER_OWNER_NONE ? 0 : -1;
-// }
