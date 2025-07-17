@@ -15,7 +15,7 @@
 #include <ctap.h>
 
 #define READ_SIZE 32
-#define STORAGE_SECTOR 80
+#define STORAGE_SECTOR 40
 #define FLASH_ADDR(b, o) (nor_config.flash_size - nor_config.sector_size * STORAGE_SECTOR + nor_config.base_addr + (b) * nor_config.sector_size + (o))
 #define LOOKAHEAD_SIZE 256
 
