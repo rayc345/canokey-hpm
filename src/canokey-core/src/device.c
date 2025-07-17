@@ -7,12 +7,12 @@
 #include <kbdhid.h>
 #include <webusb.h>
 
-volatile static uint8_t touch_result;
+static volatile uint8_t touch_result;
 static uint8_t has_rf;
 static uint32_t last_blink, blink_timeout, blink_interval;
 static enum { ON, OFF } led_status;
 typedef enum { WAIT_NONE = 1, WAIT_CCID, WAIT_CTAPHID, WAIT_DEEP, WAIT_DEEP_TOUCHED, WAIT_DEEP_CANCEL } wait_status_t;
-volatile static wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, hence inited
+static volatile wait_status_t wait_status = WAIT_NONE; // WAIT_NONE is not 0, hence inited
 
 uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 
