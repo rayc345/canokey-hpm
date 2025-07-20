@@ -61,8 +61,6 @@ sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/device/usbd.c)
 
 sdk_app_inc(src/canokey-core)
-sdk_app_src(src/canokey-core/apdu.c)
-sdk_app_src(src/canokey-core/applets.c)
 sdk_app_src(src/canokey-core/device.c)
 sdk_app_src(src/canokey-core/fs.c)
 sdk_app_src(src/canokey-core/pin.c)
