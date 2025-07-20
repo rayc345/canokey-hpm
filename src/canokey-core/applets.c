@@ -24,6 +24,7 @@ int applets_install(const uint8_t reset)
     return -1;
   if (pass_install(reset))
     return -1;
+  return 0;
 }
 
 void applets_poweroff(void)

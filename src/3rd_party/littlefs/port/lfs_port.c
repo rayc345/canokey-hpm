@@ -5,14 +5,7 @@
 #include "lfs.h"
 #include "hpm_flash.h"
 #include "fs.h"
-#include <ndef.h>
-#include <oath.h>
-#include <openpgp.h>
-#include <pass.h>
-#include <pin.h>
-#include <piv.h>
-#include <admin.h>
-#include <ctap.h>
+#include "applets.h"
 
 #define READ_SIZE 32
 #define STORAGE_SECTOR 40
@@ -96,13 +89,7 @@ void littlefs_init(void)
     printf("Formatting %02X\n", err);
     err = fs_mount(&config);
     printf("Remount %02X\n", err);
-    openpgp_install(1);
-    piv_install(1);
-    oath_install(1);
-    ctap_install(1);
-    ndef_install(1);
-    pass_install(1);
-    admin_install(1);
+    applets_install(1);
   }
 
   return;
