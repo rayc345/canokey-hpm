@@ -260,12 +260,24 @@ void process_apdu(CAPDU *capdu, RAPDU *rapdu) {
   }
 }
 
+int device_atomic_compare_and_swap(volatile uint32_t *var, uint32_t expect, uint32_t update) {
+  // if (*var == expect) {
+  //   *var = update;
+  //   return 0;
+  // } else {
+  //   return -1;
+  // }
+  return 0;
+}
+
 int acquire_apdu_buffer(uint8_t owner) {
-  device_atomic_compare_and_swap(&buffer_owner, BUFFER_OWNER_NONE, owner);
-  return buffer_owner == owner ? 0 : -1;
+  // device_atomic_compare_and_swap(&buffer_owner, BUFFER_OWNER_NONE, owner);
+  // return buffer_owner == owner ? 0 : -1;
+  return 0;
 }
 
 int release_apdu_buffer(uint8_t owner) {
-  device_atomic_compare_and_swap(&buffer_owner, owner, BUFFER_OWNER_NONE);
-  return buffer_owner == BUFFER_OWNER_NONE ? 0 : -1;
+  // device_atomic_compare_and_swap(&buffer_owner, owner, BUFFER_OWNER_NONE);
+  // return buffer_owner == BUFFER_OWNER_NONE ? 0 : -1;
+  return 0;
 }

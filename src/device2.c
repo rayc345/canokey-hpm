@@ -3,6 +3,7 @@
 #include "board.h"
 #include <device.h>
 #include "hpm_gpio_drv.h"
+#include <stdio.h>
 
 /* This file overrides functions defined in canokey-core/src/device.c */
 
@@ -61,6 +62,7 @@ void led_off(void)
 
 void device_periodic_task(void)
 {
+  printf("t\n");
   enum
   {
     TOUCH_STATE_IDLE,
