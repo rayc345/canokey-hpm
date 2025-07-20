@@ -50,9 +50,15 @@
 #endif
 #define SWAP(x, y, T) do { T SWAP = x; x = y; y = SWAP; } while (0)
 
+#ifndef UNUSED
 #define UNUSED(x) ((void)(x))
+#endif
+#ifndef __weak
 #define __weak __attribute__((weak))
+#endif
+#ifndef __packed
 #define __packed __attribute__((packed))
+#endif
 
 
 // get length of tlv with bounds checking

@@ -94,6 +94,10 @@ uint8_t ctap_install(uint8_t reset) {
   memzero(kh_key, sizeof(kh_key));
   if (write_attr(CTAP_CERT_FILE, KEY_ATTR, private_key, sizeof(private_key)) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
   if (write_file(CTAP_CERT_FILE, certificate, 0, sizeof(certificate), 1) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
+  ctap_sm2_attr.enabled = 0;
+  ctap_sm2_attr.curve_id = 9; // An unused one. See https://www.iana.org/assignments/cose/cose.xhtml#elliptic-curves
+  ctap_sm2_attr.algo_id = -48; // An unused one. See https://www.iana.org/assignments/cose/cose.xhtml#algorithms
+  if (write_attr(CTAP_CERT_FILE, SM2_ATTR, &ctap_sm2_attr, sizeof(ctap_sm2_attr)) < 0) return CTAP2_ERR_UNHANDLED_REQUEST;
   DBG_MSG("CTAP reset and initialized\n");
   return 0;
 }
