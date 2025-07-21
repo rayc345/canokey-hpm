@@ -89,7 +89,6 @@ void littlefs_init(void)
     printf("Formatting %02X\n", err);
     err = fs_mount(&config);
     printf("Remount %02X\n", err);
-    applets_install(1);
   }
 
   return;

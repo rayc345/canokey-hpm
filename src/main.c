@@ -50,7 +50,7 @@ int main(void)
     printf("cherry usb hid_custom in/out device sample.\n");
 
     littlefs_init();
-    applets_install(0);
+    applets_install();
     init_apdu_buffer();
     canokey_init(0, CONFIG_HPM_USBD_BASE);
 

@@ -8,27 +8,17 @@
 #include <pass.h>
 #include <piv.h>
 
-int applets_install(const uint8_t reset)
-{
-  if (openpgp_install(reset) < 0)
-    return -1;
-  if (piv_install(reset))
-    return -1;
-  if (oath_install(reset))
-    return -1;
-  if (ctap_install(reset))
-    return -1;
-  if (admin_install(reset))
-    return -1;
-  if (ndef_install(reset))
-    return -1;
-  if (pass_install(reset))
-    return -1;
-  return 0;
+void applets_install(void) {
+  openpgp_install(0);
+  piv_install(0);
+  oath_install(0);
+  ctap_install(0);
+  admin_install(0);
+  ndef_install(0);
+  pass_install(0);
 }
 
-void applets_poweroff(void)
-{
+void applets_poweroff(void) {
   piv_poweroff();
   oath_poweroff();
   admin_poweroff();

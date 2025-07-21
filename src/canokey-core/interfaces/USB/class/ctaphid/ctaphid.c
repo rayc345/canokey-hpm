@@ -30,8 +30,7 @@ uint8_t CTAPHID_OutEvent(uint8_t *data) {
   return 0;
 }
 
-static void CTAPHID_SendFrame(void) 
-{
+static void CTAPHID_SendFrame(void) {
   USBD_CTAPHID_SendReport(0, (uint8_t *)&frame, sizeof(CTAPHID_FRAME)); 
 }
 

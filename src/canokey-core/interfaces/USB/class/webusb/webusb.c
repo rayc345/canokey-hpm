@@ -28,6 +28,56 @@ uint8_t USBD_WEBUSB_Init(void) {
   return 0;
 }
 
+uint8_t USBD_WEBUSB_Setup(uint8_t busid, uint8_t *req) {
+  // CCID_eject();
+  // last_keepalive = device_get_tick();
+  // switch (req->bRequest) {
+  // case WEBUSB_REQ_CMD:
+  //   if (state != STATE_IDLE && state != STATE_HOLD_BUF) {
+  //     ERR_MSG("Wrong state %d\n", state);
+  //     USBD_CtlError(pdev, req);
+  //     return USBD_FAIL;
+  //   }
+  //   if (acquire_apdu_buffer(BUFFER_OWNER_WEBUSB) != 0) {
+  //     ERR_MSG("Busy\n");
+  //     USBD_CtlError(pdev, req);
+  //     return USBD_FAIL;
+  //   }
+  //   state = STATE_HOLD_BUF;
+  //   //DBG_MSG("Buf Acquired\n");
+  //   if (req->wLength > APDU_BUFFER_SIZE) {
+  //     ERR_MSG("Overflow\n");
+  //     USBD_CtlError(pdev, req);
+  //     return USBD_FAIL;
+  //   }
+  //   USBD_CtlPrepareRx(pdev, global_buffer, req->wLength);
+  //   apdu_buffer_size = req->wLength;
+  //   state = STATE_RECVING;
+  //   break;
+
+  // case WEBUSB_REQ_RESP:
+  //   if (state == STATE_SENDING_RESP) {
+  //     uint16_t len = MIN(apdu_buffer_size, req->wLength);
+  //     USBD_CtlSendData(pdev, global_buffer, len, WEBUSB_EP0_SENDER);
+  //     state = STATE_SENT_RESP;
+  //   } else {
+  //     USBD_CtlError(pdev, req);
+  //     return USBD_FAIL;
+  //   }
+  //   break;
+
+  // case WEBUSB_REQ_STAT:
+  //   USBD_CtlSendData(pdev, (uint8_t*)&state, 1, WEBUSB_EP0_SENDER);
+  //   break;
+
+  // default:
+  //   USBD_CtlError(pdev, req);
+  //   return USBD_FAIL;
+  // }
+
+  return 0;
+}
+
 void WebUSB_Loop(void) {
   if (device_get_tick() - last_keepalive > 2000 && state == STATE_HOLD_BUF) {
     DBG_MSG("Release buffer after time-out\n");
@@ -125,112 +175,112 @@ uint8_t USBD_WEBUSB_RxReady(uint8_t busid) {
 //   return false;
 // }
 
-int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
-    (void)busid;
-    (void)data;
-    (void)len;
+// int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
+//     (void)busid;
+//     (void)data;
+//     (void)len;
 
-    USB_LOG_DBG("Vendor Class request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
+//     USB_LOG_DBG("Vendor Class request: "
+//                 "bRequest 0x%02x\r\n",
+//                 setup->bRequest);
 
-    switch (setup->bRequest)
-    {
-        // case 0x22:
-        //     if (setup->wValue != 0)
-        //     {
-        //         // board_led_write(!board_get_led_gpio_off_level());
-        //     }
-        //     else
-        //     {
-        //         // board_led_write(board_get_led_gpio_off_level());
-        //     }
-        //     break;
+//     switch (setup->bRequest)
+//     {
+//         // case 0x22:
+//         //     if (setup->wValue != 0)
+//         //     {
+//         //         // board_led_write(!board_get_led_gpio_off_level());
+//         //     }
+//         //     else
+//         //     {
+//         //         // board_led_write(board_get_led_gpio_off_level());
+//         //     }
+//         //     break;
 
-    default:
-        USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
-        return -1;
-    }
-
-    return 0;
-}
-
-int USBD_WEBUSB_Setup2(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
-    (void)busid;
-    (void)data;
-    (void)len;
-
-    USB_LOG_DBG("Vendor 2 request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
-
-    switch (setup->bRequest)
-    {
-        // case 0x22:
-        //     if (setup->wValue != 0)
-        //     {
-        //         // board_led_write(!board_get_led_gpio_off_level());
-        //     }
-        //     else
-        //     {
-        //         // board_led_write(board_get_led_gpio_off_level());
-        //     }
-        //     break;
-
-    default:
-        USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
-        return -1;
-    }
-
-    return 0;
-}
-
-// int8_t USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
-//   // CCID_eject();
-//   last_keepalive = device_get_tick();
-//   switch (req->bRequest) {
-//   case WEBUSB_REQ_CMD:
-//     if (state != STATE_IDLE && state != STATE_HOLD_BUF) {
-//       ERR_MSG("Wrong state %d\n", state);
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
+//     default:
+//         USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
+//         return -1;
 //     }
-//     if (acquire_apdu_buffer(BUFFER_OWNER_WEBUSB) != 0) {
-//       ERR_MSG("Busy\n");
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     state = STATE_HOLD_BUF;
-//     //DBG_MSG("Buf Acquired\n");
-//     if (req->wLength > APDU_BUFFER_SIZE) {
-//       ERR_MSG("Overflow\n");
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     USBD_CtlPrepareRx(pdev, global_buffer, req->wLength);
-//     apdu_buffer_size = req->wLength;
-//     state = STATE_RECVING;
-//     break;
 
-//   case WEBUSB_REQ_RESP:
-//     if (state == STATE_SENDING_RESP) {
-//       uint16_t len = MIN(apdu_buffer_size, req->wLength);
-//       USBD_CtlSendData(pdev, global_buffer, len, WEBUSB_EP0_SENDER);
-//       state = STATE_SENT_RESP;
-//     } else {
-//       USBD_CtlError(pdev, req);
-//       return USBD_FAIL;
-//     }
-//     break;
-
-//   case WEBUSB_REQ_STAT:
-//     USBD_CtlSendData(pdev, (uint8_t*)&state, 1, WEBUSB_EP0_SENDER);
-//     break;
-
-//   default:
-//     USBD_CtlError(pdev, req);
-//     return USBD_FAIL;
-//   }
-
-//   return 0;
+//     return 0;
 // }
+
+// int USBD_WEBUSB_Setup2(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
+//     (void)busid;
+//     (void)data;
+//     (void)len;
+
+//     USB_LOG_DBG("Vendor 2 request: "
+//                 "bRequest 0x%02x\r\n",
+//                 setup->bRequest);
+
+//     switch (setup->bRequest)
+//     {
+//         // case 0x22:
+//         //     if (setup->wValue != 0)
+//         //     {
+//         //         // board_led_write(!board_get_led_gpio_off_level());
+//         //     }
+//         //     else
+//         //     {
+//         //         // board_led_write(board_get_led_gpio_off_level());
+//         //     }
+//         //     break;
+
+//     default:
+//         USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
+//         return -1;
+//     }
+
+//     return 0;
+// }
+
+// // int8_t USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len) {
+// //   // CCID_eject();
+// //   last_keepalive = device_get_tick();
+// //   switch (req->bRequest) {
+// //   case WEBUSB_REQ_CMD:
+// //     if (state != STATE_IDLE && state != STATE_HOLD_BUF) {
+// //       ERR_MSG("Wrong state %d\n", state);
+// //       USBD_CtlError(pdev, req);
+// //       return USBD_FAIL;
+// //     }
+// //     if (acquire_apdu_buffer(BUFFER_OWNER_WEBUSB) != 0) {
+// //       ERR_MSG("Busy\n");
+// //       USBD_CtlError(pdev, req);
+// //       return USBD_FAIL;
+// //     }
+// //     state = STATE_HOLD_BUF;
+// //     //DBG_MSG("Buf Acquired\n");
+// //     if (req->wLength > APDU_BUFFER_SIZE) {
+// //       ERR_MSG("Overflow\n");
+// //       USBD_CtlError(pdev, req);
+// //       return USBD_FAIL;
+// //     }
+// //     USBD_CtlPrepareRx(pdev, global_buffer, req->wLength);
+// //     apdu_buffer_size = req->wLength;
+// //     state = STATE_RECVING;
+// //     break;
+
+// //   case WEBUSB_REQ_RESP:
+// //     if (state == STATE_SENDING_RESP) {
+// //       uint16_t len = MIN(apdu_buffer_size, req->wLength);
+// //       USBD_CtlSendData(pdev, global_buffer, len, WEBUSB_EP0_SENDER);
+// //       state = STATE_SENT_RESP;
+// //     } else {
+// //       USBD_CtlError(pdev, req);
+// //       return USBD_FAIL;
+// //     }
+// //     break;
+
+// //   case WEBUSB_REQ_STAT:
+// //     USBD_CtlSendData(pdev, (uint8_t*)&state, 1, WEBUSB_EP0_SENDER);
+// //     break;
+
+// //   default:
+// //     USBD_CtlError(pdev, req);
+// //     return USBD_FAIL;
+// //   }
+
+// //   return 0;
+// // }
