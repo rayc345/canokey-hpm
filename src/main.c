@@ -14,6 +14,7 @@
 #include <applets.h>
 #include <device.h>
 #include "usbd.h"
+#include <stdatomic.h>
 
 extern void device_periodic_task(void);
 extern void fido_usb_device_init(uint8_t busid, uint32_t reg_base);
@@ -44,7 +45,6 @@ int main(void)
     //    return 1;
     //}
     //printf("rng get rand wait\n");
-
     board_init_usb((USB_Type *)CONFIG_HPM_USBD_BASE);
     intc_set_irq_priority(CONFIG_HPM_USBD_IRQn, 2);
     printf("cherry usb hid_custom in/out device sample.\n");

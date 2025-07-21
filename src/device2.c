@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // #include "device-config.h"
+#include <stdio.h>
+#include <stdatomic.h>
 #include "board.h"
 #include <device.h>
 #include "hpm_gpio_drv.h"
-#include <stdio.h>
+#include "hpm_gptmr_drv.h"
 
 /* This file overrides functions defined in canokey-core/src/device.c */
 
@@ -43,9 +45,52 @@ void device_delay(int ms)
   board_delay_ms(ms);
 }
 
+// static board_timer_cb timer_cb_pt;
+// SDK_DECLARE_EXT_ISR_M(IRQn_GPTMR2, board_tp_timer_isr)
+// void board_tp_timer_isr(void)
+// {
+//   if (gptmr_check_status(HPM_GPTMR2, GPTMR_CH_RLD_STAT_MASK(1)))
+//   {
+//     gptmr_clear_status(HPM_GPTMR2, GPTMR_CH_RLD_STAT_MASK(1));
+//     timer_cb_pt();
+//   }
+// }
+
+static board_timer_cb timer_cb2;
+SDK_DECLARE_EXT_ISR_M(IRQn_GPTMR4, board_timer_isr2)
+void board_timer_isr2(void)
+{
+  if (gptmr_check_status(HPM_GPTMR4, GPTMR_CH_RLD_STAT_MASK(1)))
+  {
+    gptmr_clear_status(HPM_GPTMR4, GPTMR_CH_RLD_STAT_MASK(1));
+    if (timer_cb2)
+      timer_cb2();
+    gptmr_stop_counter(HPM_GPTMR4, 1);
+  }
+}
+
+void board_timer_create2(uint32_t ms, board_timer_cb cb)
+{
+  uint32_t gptmr_freq;
+  gptmr_channel_config_t config;
+
+  timer_cb2 = cb;
+  gptmr_channel_get_default_config(HPM_GPTMR4, &config);
+
+  clock_add_to_group(clock_gptmr4, 0);
+  gptmr_freq = clock_get_frequency(clock_gptmr4);
+
+  config.reload = gptmr_freq / 1000 * ms;
+  gptmr_channel_config(HPM_GPTMR4, 1, &config, false);
+  gptmr_enable_irq(HPM_GPTMR4, GPTMR_CH_RLD_IRQ_MASK(1));
+  intc_m_enable_irq_with_priority(IRQn_GPTMR4, 1);
+
+  gptmr_start_counter(HPM_GPTMR4, 1);
+}
+
 void device_set_timeout(void (*callback)(void), uint16_t timeout)
 {
-  board_timer_create(timeout, callback);
+  board_timer_create2(timeout, callback);
 }
 
 void led_on(void)
@@ -62,7 +107,6 @@ void led_off(void)
 
 void device_periodic_task(void)
 {
-  printf("t\n");
   enum
   {
     TOUCH_STATE_IDLE,
@@ -111,6 +155,11 @@ void device_periodic_task(void)
     break;
   }
   device_update_led();
+}
+
+int device_atomic_compare_and_swap(volatile uint32_t *var, uint32_t expect, uint32_t update)
+{
+  return atomic_compare_exchange_strong(var, &expect, update) == true;
 }
 
 int device_spinlock_lock(volatile uint32_t *lock, uint32_t blocking)
