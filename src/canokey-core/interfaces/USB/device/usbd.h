@@ -25,9 +25,9 @@ typedef struct {
 } keyboard_report_t;
 
 uint8_t USBD_CTAPHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len);
+uint8_t CCID_Response_SendData(uint8_t busid, const uint8_t *buf, uint16_t len, uint8_t is_time_extension_request);
 uint8_t USBD_KBDHID_SendReport(uint8_t busid, uint8_t *report, uint16_t len);
 uint8_t USBD_KBDHID_IsIdle(void);
-uint8_t CCID_Response_SendData(uint8_t busid, const uint8_t *buf, uint16_t len, uint8_t is_time_extension_request);
 
 void canokey_init(uint8_t busid, uintptr_t reg_base);
 

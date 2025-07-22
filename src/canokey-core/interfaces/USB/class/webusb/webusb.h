@@ -9,7 +9,7 @@
 #define WEBUSB_REQ_STAT 0x02
 
 uint8_t USBD_WEBUSB_Init(void);
-uint8_t USBD_WEBUSB_Setup(uint8_t busid, uint8_t *req);
+// uint8_t USBD_WEBUSB_Setup(uint8_t busid, uint8_t *req);
 uint8_t USBD_WEBUSB_TxSent(uint8_t busid);
 uint8_t USBD_WEBUSB_RxReady(uint8_t busid);
 void WebUSB_Loop(void);
