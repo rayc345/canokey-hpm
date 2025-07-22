@@ -19,7 +19,7 @@ uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 void device_loop(void) {
   CCID_Loop();
   CTAPHID_Loop(0);
-  // WebUSB_Loop();
+  WebUSB_Loop();
   KBDHID_Loop();
 }
 
