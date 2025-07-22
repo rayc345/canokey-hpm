@@ -77,8 +77,8 @@ void littlefs_init(void)
   config.lookahead_buffer = lookahead_buffer;
 
   // mount the filesystem
-  int err = 1;
-  // int err = fs_mount(&config);
+  // int err = 1;
+  int err = fs_mount(&config);
 
   // reformat if we can't mount the filesystem
   // this should only happen on the first boot

@@ -42,7 +42,7 @@
 #endif
 
 /* descriptor common define */
-#define USBD_VID           0x20A0 /* HPMicro VID */
+#define USBD_VID           0x21A0 /* HPMicro VID */
 #define USBD_PID           0x42D4
 #define USBD_MAX_POWER     200
 
