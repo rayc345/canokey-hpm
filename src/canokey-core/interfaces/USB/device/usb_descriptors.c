@@ -257,7 +257,8 @@ const tusb_desc_webusb_url_t desc_url = {
     .bLength = 3 + sizeof(USBD_URL_STRING) - 1,
     .bDescriptorType = 3, // WEBUSB URL type
     .bScheme = 1,         // 0: http, 1: https
-    .url = USBD_URL_STRING};
+    .url = USBD_URL_STRING,
+};
 
 //--------------------------------------------------------------------+
 // String Descriptors
@@ -275,7 +276,8 @@ char const *string_desc_arr_custom[] = {
     USBD_CTAPHID_INTERFACE_STRING,
     USBD_CCID_INTERFACE_STRING,
     USBD_WEBUSB_INTERFACE_STRING,
-    USBD_KBDHID_INTERFACE_STRING};
+    USBD_KBDHID_INTERFACE_STRING,
+};
 
 static uint16_t _desc_str[USBD_MAX_STR_DESC_SIZE];
 
@@ -321,9 +323,9 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
   _desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * chr_count + 2);
 
   DBG_MSG("String Descriptor [%d], chr: %d\n", index, chr_count);
-  // for (uint8_t i = 0; i < chr_count; i++)
-  //   DBG_MSG("%04X ", _desc_str[i]);
-  // DBG_MSG("\r\n");
+  for (uint8_t i = 0; i < chr_count; i++)
+    DBG_MSG("%04X ", _desc_str[i]);
+  DBG_MSG("\r\n");
 
   return _desc_str;
 }

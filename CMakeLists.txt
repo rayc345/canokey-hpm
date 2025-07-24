@@ -125,7 +125,6 @@ sdk_app_src(src/canokey-crypto/sm3.c)
 sdk_app_src(src/admin_vendor.c)
 sdk_app_src(src/device2.c)
 sdk_app_src(src/main.c)
-sdk_app_src(src/usb.c)
 
 
 generate_ide_projects()
