@@ -57,7 +57,7 @@ uint8_t CCID_Response_SendData(const uint8_t *buf, uint16_t len, uint8_t is_time
   if (is_time_extension_request)
     bulkin_state = CCID_STATE_DATA_IN_TIME_EXTENSION;
   else
-    bulkin_state = len % CFG_TUD_CCID_EPSIZE == 0 ? CCID_STATE_DATA_IN_WITH_ZLP : CCID_STATE_DATA_IN;
+    bulkin_state = len % CFG_TUD_CCID_EPSIZE_HS == 0 ? CCID_STATE_DATA_IN_WITH_ZLP : CCID_STATE_DATA_IN;
   ret = tud_ccid_write(buf, len);
 
   return ret;

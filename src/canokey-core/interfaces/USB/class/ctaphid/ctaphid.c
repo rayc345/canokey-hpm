@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <tusb.h>
+
 #include <apdu.h>
 #include <ctap.h>
 #include <ctaphid.h>
 #include <device.h>
 #include <rand.h>
-#include <usbd.h>
+#include <usb_descriptors.h>
 
 static CTAPHID_FRAME frame;
 static CTAPHID_Channel channel;

@@ -24,7 +24,7 @@ typedef struct {
 #endif
 
   // Endpoint Transfer buffer
-  CFG_TUSB_MEM_ALIGN uint8_t epout_buf[CFG_TUD_CCID_EPSIZE];
+  CFG_TUSB_MEM_ALIGN uint8_t epout_buf[CFG_TUD_CCID_RX_BUFSIZE];
 } ccidd_interface_t;
 
 #define CCIDD_MEM_RESET_SIZE offsetof(ccidd_interface_t, rx_ff)
@@ -52,8 +52,8 @@ static void _prep_out_transaction(ccidd_interface_t *p_itf) {
 
   // Prepare for incoming data but only allow what we can store in the ring buffer.
   uint16_t max_read = tu_fifo_remaining(&p_itf->rx_ff);
-  if (max_read >= CFG_TUD_CCID_EPSIZE) {
-    usbd_edpt_xfer(TUD_OPT_RHPORT, p_itf->ep_out, p_itf->epout_buf, CFG_TUD_CCID_EPSIZE);
+  if (max_read >= CFG_TUD_CCID_EPSIZE_HS) {
+    usbd_edpt_xfer(TUD_OPT_RHPORT, p_itf->ep_out, p_itf->epout_buf, CFG_TUD_CCID_EPSIZE_HS);
   }
 }
 

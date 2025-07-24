@@ -3,10 +3,6 @@
 
 #include "common/tusb_common.h"
 
-#ifndef CFG_TUD_CCID_EPSIZE
-#define CFG_TUD_CCID_EPSIZE 64
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

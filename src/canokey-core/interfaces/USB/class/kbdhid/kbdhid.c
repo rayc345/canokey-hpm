@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <tusb.h>
+
 #include <admin.h>
 #include <common.h>
 #include <device.h>
 #include <pass.h>
+
 #include <kbdhid.h>
-#include <usbd.h>
+#include <usb_descriptors.h>
 
 #define EJECT_KEY 0x03
 

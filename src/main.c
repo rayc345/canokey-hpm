@@ -13,15 +13,14 @@
 #include <apdu.h>
 #include <applets.h>
 #include <device.h>
-#include "usbd.h"
 #include <tusb.h>
+#include "usb_device.h"
 
 
 extern void device_periodic_task(void);
-extern void fido_usb_device_init(uint8_t busid, uint32_t reg_base);
 
-uint8_t *global_buffer;
-uint8_t buffer[1500];
+// uint8_t *global_buffer;
+// uint8_t buffer[1500];
 
 //uint32_t random32(void)
 //{
@@ -40,7 +39,7 @@ int main(void)
 {
     board_init();
     board_init_led_pins();
-    global_buffer = buffer;
+    // global_buffer = buffer;
     //clock_add_to_group(clock_rng, 0);
     //hpm_stat_t stat;
     //stat = rng_init(HPM_RNG);
@@ -56,7 +55,8 @@ int main(void)
     littlefs_init();
     applets_install();
     // init_apdu_buffer();
-    tusb_init();
+    // tusb_init();
+    canokey_usb_device_init();
 
     board_timer_create(10, device_periodic_task);
 

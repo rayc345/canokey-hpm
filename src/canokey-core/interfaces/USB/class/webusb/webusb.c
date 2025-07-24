@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <tusb.h>
-#include <usbd.h>
+#include <usb_descriptors.h>
+
 #include <apdu.h>
 #include <ccid.h>
 #include <device.h>

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "common.h"
-#include <tusb.h>
-// #include <admin.h>
-// #include <ccid.h>
+#include <admin.h>
+#include <ccid.h>
 #include <ctaphid.h>
 #include <device.h>
-// #include <kbdhid.h>
-// #include <webusb.h>
+#include <kbdhid.h>
+#include <tusb.h>
+#include <webusb.h>
 
 volatile static uint8_t touch_result;
 static uint8_t has_rf;
@@ -19,19 +19,19 @@ uint8_t device_is_blinking(void) { return blink_timeout != 0; }
 
 // Called when usb device is connected and initialized
 void device_mounted() {
-  // ccid_init();
+  ccid_init();
   ctap_hid_init(CTAPHID_SendReport);
-  // webusb_init();
-  // kbd_hid_init();
+  webusb_init();
+  kbd_hid_init();
 }
 
 void device_loop(uint8_t has_touch) {
   tud_task(); // TinyUSB stack task
 
-  // ccid_loop();
+  ccid_loop();
   ctap_hid_loop(0);
-  // webusb_loop();
-  // kbd_hid_loop();
+  webusb_loop();
+  kbd_hid_loop();
 }
 
 bool device_allow_kbd_touch(void) {
@@ -83,7 +83,7 @@ uint8_t wait_for_user_presence(uint8_t entry) {
     // Keep blinking, in case other applet stops it 
     start_blinking(0);
     // Nested CCID processing is not allowed
-    // if (entry != WAIT_ENTRY_CCID) ccid_loop();
+    if (entry != WAIT_ENTRY_CCID) ccid_loop();
     if (ctap_hid_loop(entry == WAIT_ENTRY_CTAPHID) == LOOP_CANCEL) {
       DBG_MSG("Cancelled by host\n");
       stop_blinking();
@@ -184,13 +184,13 @@ void start_blinking_interval(uint8_t sec, uint32_t interval) {
 
 void stop_blinking(void) {
   blink_timeout = 0;
-  // if (cfg_is_led_normally_on()) {
+  if (cfg_is_led_normally_on()) {
     led_on();
     led_status = ON;
-  // } else {
-  //   led_off();
-  //   led_status = OFF;
-  // }
+  } else {
+    led_off();
+    led_status = OFF;
+  }
 }
 
 void device_init(void) {
