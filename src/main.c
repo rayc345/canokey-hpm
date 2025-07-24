@@ -54,7 +54,7 @@ int main(void)
 
     littlefs_init();
     applets_install();
-    // init_apdu_buffer();
+    init_apdu_buffer();
     // tusb_init();
     canokey_usb_device_init();
 

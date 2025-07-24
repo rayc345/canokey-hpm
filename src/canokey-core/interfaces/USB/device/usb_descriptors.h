@@ -4,7 +4,7 @@
 #include <usb_device.h>
 
 #define USBD_VID 0x20A0
-#define USBD_PID 0x4AD4
+#define USBD_PID 0x42D4
 
 #define USBD_LANGID_STRING 0x09, 0x04
 #define USBD_MANUFACTURER_STRING "canokeys.org"
