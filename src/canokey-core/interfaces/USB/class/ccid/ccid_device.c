@@ -17,14 +17,14 @@ typedef struct {
   /*------------- From this point, data is not cleared by bus reset -------------*/
   tu_fifo_t rx_ff;
 
-  uint8_t rx_ff_buf[CFG_TUD_CCID_RX_BUFSIZE];
+  uint8_t rx_ff_buf[CFG_TUD_CCID_EPSIZE_HS];
 
 #if CFG_FIFO_MUTEX
   osal_mutex_def_t rx_ff_mutex;
 #endif
 
   // Endpoint Transfer buffer
-  CFG_TUSB_MEM_ALIGN uint8_t epout_buf[CFG_TUD_CCID_RX_BUFSIZE];
+  CFG_TUSB_MEM_ALIGN uint8_t epout_buf[CFG_TUD_CCID_EPSIZE_HS];
 } ccidd_interface_t;
 
 #define CCIDD_MEM_RESET_SIZE offsetof(ccidd_interface_t, rx_ff)
@@ -111,7 +111,7 @@ void ccidd_init(void) {
     ccidd_interface_t *p_itf = &_ccidd_itf[i];
 
     // config fifo
-    tu_fifo_config(&p_itf->rx_ff, p_itf->rx_ff_buf, CFG_TUD_CCID_RX_BUFSIZE, 1, false);
+    tu_fifo_config(&p_itf->rx_ff, p_itf->rx_ff_buf, CFG_TUD_CCID_EPSIZE_HS, 1, false);
 
 #if CFG_FIFO_MUTEX
     tu_fifo_config_mutex(&p_itf->rx_ff, NULL, osal_mutex_create(&p_itf->rx_ff_mutex));
@@ -160,6 +160,9 @@ uint16_t ccidd_open(uint8_t rhport, tusb_desc_interface_t const *desc_itf, uint1
 }
 
 bool ccidd_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request) {
+  (void)rhport;
+  (void)stage;
+  (void)request;
   // TODO: check if we need to implement ABORT
   // GET_CLOCK_FREQUENCIES and GET_DATA_RATES are not needed
   return true;

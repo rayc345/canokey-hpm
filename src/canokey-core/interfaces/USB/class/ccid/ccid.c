@@ -476,6 +476,8 @@ void tud_ccid_rx_cb(uint8_t itf) {
 
 // Invoked when last tx transfer finished
 void tud_ccid_tx_cb(uint8_t itf, uint32_t sent_bytes) {
+  (void)itf;
+  (void)sent_bytes;
   // DBG_MSG("itf=%d, sent_bytes=%d bulkin_state=%d\r\n", itf, sent_bytes, bulkin_state);
   if (bulkin_state == CCID_STATE_DATA_IN_WITH_ZLP) {
     bulkin_state = CCID_STATE_DATA_IN;

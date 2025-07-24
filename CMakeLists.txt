@@ -21,7 +21,7 @@ sdk_compile_definitions(-DUSB_HOST_MCU_CORE=HPM_CORE0)
 
 sdk_compile_definitions(USE_MBEDCRYPTO)
 sdk_compile_definitions(DEBUG_OUTPUT)
-sdk_compile_definitions(CFG_TUSB_DEBUG)
+# sdk_compile_definitions(CFG_TUSB_DEBUG)
 sdk_compile_definitions(LFS_YES_TRACE)
 sdk_compile_definitions(FLT16_MANT_DIG=0)
 
@@ -55,6 +55,21 @@ sdk_app_src(src/3rd_party/tinycbor/cborpretty_stdio.c)
 sdk_app_src(src/3rd_party/tinycbor/cbortojson.c)
 sdk_app_src(src/3rd_party/tinycbor/cborvalidation.c)
 # sdk_app_src(src/3rd_party/tinycbor/open_memstream.c)
+
+# # tinyusb
+# sdk_app_inc(src/3rd_party/tinyusb)
+# sdk_app_inc(src/3rd_party/tinyusb/class/hid)
+# sdk_app_inc(src/3rd_party/tinyusb/class/vendor)
+# sdk_app_inc(src/3rd_party/tinyusb/common)
+# sdk_app_inc(src/3rd_party/tinyusb/device)
+# sdk_app_src(src/3rd_party/tinyusb/tusb.c)
+# sdk_app_src(src/3rd_party/tinyusb/class/hid/hid_device.c)
+# sdk_app_src(src/3rd_party/tinyusb/class/vendor/vendor_device.c)
+# sdk_app_src(src/3rd_party/tinyusb/common/tusb_fifo.c)
+# sdk_app_src(src/3rd_party/tinyusb/device/usbd.c)
+# sdk_app_src(src/3rd_party/tinyusb/device/usbd_control.c)
+# sdk_app_src(src/3rd_party/tinyusb/portable/hpm/dcd_hpm.c)
+
 
 # Canokey-core
 sdk_app_inc(src/canokey-core/applets/admin)

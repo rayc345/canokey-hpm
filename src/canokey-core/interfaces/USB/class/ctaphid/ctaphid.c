@@ -272,9 +272,18 @@ consume_frame:
 //==============================================================================
 // TinyUSB stack callbacks
 //==============================================================================
-void ctap_hid_report_complete_cb(uint8_t const *report, uint8_t len) { hid_state = CTAPHID_IDLE; }
+void ctap_hid_report_complete_cb(uint8_t const *report, uint8_t len)
+{ 
+  (void)report;
+  (void)len;
+  hid_state = CTAPHID_IDLE;
+}
 
 uint16_t ctap_hid_get_report_cb(uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen) {
+  (void)report_id;
+  (void)report_type;
+  (void)buffer;
+  (void)reqlen;
   return 0;
 }
 

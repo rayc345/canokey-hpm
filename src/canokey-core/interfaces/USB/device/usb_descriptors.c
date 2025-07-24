@@ -42,8 +42,8 @@ uint8_t const *tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 // HID report Descriptor
 //--------------------------------------------------------------------+
-uint8_t const desc_ctaphid_report[] = {
-    TUD_HID_REPORT_DESC_FIDO_U2F(CFG_TUD_HID_EP_BUFSIZE)};
+uint8_t desc_ctaphid_report[] = {
+    TUD_HID_REPORT_DESC_FIDO_U2F(CFG_TUD_CTAPHID_EPSIZE_FS)};
 
 uint8_t const desc_kbdhid_report[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(1)),
@@ -57,6 +57,9 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t itf)
 {
   if (itf == HID_ITF_CTAP)
   {
+    uint8_t report_count = (tud_speed_get() == TUSB_SPEED_HIGH) ? CFG_TUD_CTAPHID_EPSIZE_FS : CFG_TUD_CTAPHID_EPSIZE_HS;
+    desc_ctaphid_report[17] = report_count;
+    desc_ctaphid_report[30] = report_count;
     return desc_ctaphid_report;
   }
   else if (itf == HID_ITF_KBD)
@@ -79,7 +82,7 @@ uint8_t desc_fs_configuration[] =
         /* Config number, interface count, string index, total length, attribute, power in mA */
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0, 100),
         // CTAPHID Interface
-        TUD_HID_INOUT_DESCRIPTOR(HID_ITF_CTAP, USBD_IDX_CTAPHID_STR, HID_ITF_PROTOCOL_NONE, sizeof(desc_ctaphid_report), CFG_TUD_EPNUM_CTAPHID, 0x80 | CFG_TUD_EPNUM_CTAPHID, 64, 1),
+        TUD_HID_INOUT_DESCRIPTOR(HID_ITF_CTAP, USBD_IDX_CTAPHID_STR, HID_ITF_PROTOCOL_NONE, sizeof(desc_ctaphid_report), CFG_TUD_EPNUM_CTAPHID, 0x80 | CFG_TUD_EPNUM_CTAPHID, CFG_TUD_CTAPHID_EPSIZE_FS, 1),
         // WebUSB Interface
         0x09, TUSB_DESC_INTERFACE, ITF_NUM_WEBUSB, 0, 0, TUSB_CLASS_VENDOR_SPECIFIC, 0xFF, 0xFF, USBD_IDX_WEBUSB_STR,
         // CCID Interface
@@ -115,7 +118,7 @@ uint8_t desc_fs_configuration[] =
         7, TUSB_DESC_ENDPOINT, 0x80 | CFG_TUD_EPNUM_CCID, TUSB_XFER_BULK, U16_TO_U8S_LE(CFG_TUD_CCID_EPSIZE_FS), 0,
         7, TUSB_DESC_ENDPOINT, CFG_TUD_EPNUM_CCID, TUSB_XFER_BULK, U16_TO_U8S_LE(CFG_TUD_CCID_EPSIZE_FS), 0,
         // KBDHID Interface
-        TUD_HID_DESCRIPTOR(ITF_NUM_KBD, USBD_IDX_KBDHID_STR, 0, sizeof(desc_kbdhid_report), 0x80 | CFG_TUD_EPNUM_KBDHID, CFG_TUD_KBDHID_EP_BUFSIZE, 10),
+        TUD_HID_DESCRIPTOR(ITF_NUM_KBD, USBD_IDX_KBDHID_STR, 0, sizeof(desc_kbdhid_report), 0x80 | CFG_TUD_EPNUM_KBDHID, CFG_TUD_KBDHID_EPSIZE, 10),
         // clang-format on
 };
 
@@ -125,7 +128,7 @@ uint8_t desc_hs_configuration[] =
         /* Config number, interface count, string index, total length, attribute, power in mA */
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0, 100),
         // CTAPHID Interface
-        TUD_HID_INOUT_DESCRIPTOR(HID_ITF_CTAP, USBD_IDX_CTAPHID_STR, HID_ITF_PROTOCOL_NONE, sizeof(desc_ctaphid_report), CFG_TUD_EPNUM_CTAPHID, 0x80 | CFG_TUD_EPNUM_CTAPHID, 512, 1),
+        TUD_HID_INOUT_DESCRIPTOR(HID_ITF_CTAP, USBD_IDX_CTAPHID_STR, HID_ITF_PROTOCOL_NONE, sizeof(desc_ctaphid_report), CFG_TUD_EPNUM_CTAPHID, 0x80 | CFG_TUD_EPNUM_CTAPHID, CFG_TUD_CTAPHID_EPSIZE_HS, 1),
         // WebUSB Interface
         0x09, TUSB_DESC_INTERFACE, ITF_NUM_WEBUSB, 0, 0, TUSB_CLASS_VENDOR_SPECIFIC, 0xFF, 0xFF, USBD_IDX_WEBUSB_STR,
         // CCID Interface
@@ -161,7 +164,7 @@ uint8_t desc_hs_configuration[] =
         7, TUSB_DESC_ENDPOINT, 0x80 | CFG_TUD_EPNUM_CCID, TUSB_XFER_BULK, U16_TO_U8S_LE(CFG_TUD_CCID_EPSIZE_HS), 0,
         7, TUSB_DESC_ENDPOINT, CFG_TUD_EPNUM_CCID, TUSB_XFER_BULK, U16_TO_U8S_LE(CFG_TUD_CCID_EPSIZE_HS), 0,
         // KBDHID Interface
-        TUD_HID_DESCRIPTOR(ITF_NUM_KBD, USBD_IDX_KBDHID_STR, 0, sizeof(desc_kbdhid_report), 0x80 | CFG_TUD_EPNUM_KBDHID, CFG_TUD_KBDHID_EP_BUFSIZE, 10),
+        TUD_HID_DESCRIPTOR(ITF_NUM_KBD, USBD_IDX_KBDHID_STR, 0, sizeof(desc_kbdhid_report), 0x80 | CFG_TUD_EPNUM_KBDHID, CFG_TUD_KBDHID_EPSIZE, 10),
         // clang-format on
 };
 #endif
@@ -285,6 +288,7 @@ static uint16_t _desc_str[USBD_MAX_STR_DESC_SIZE];
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
 {
+  (void)langid;
   uint8_t chr_count;
   const char *_str; // This will get copied to _desc_str
 

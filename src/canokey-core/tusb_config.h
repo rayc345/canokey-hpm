@@ -100,8 +100,8 @@
 #define CFG_TUD_VENDOR            1
 
 // HID buffer size Should be sufficient to hold ID (if any) + Data
-#define CFG_TUD_CTAPHID_EP_BUFSIZE  512
-#define CFG_TUD_KBDHID_EP_BUFSIZE   8
+#define CFG_TUD_CTAPHID_EPSIZE_FS 64
+#define CFG_TUD_CTAPHID_EPSIZE_HS 512
 
 // Vendor FIFO size of TX and RX, for webusb
 // We only use control transfer, so no need for buffer
@@ -111,12 +111,15 @@
 // CCID buffer size
 #define CFG_TUD_CCID_EPSIZE_FS 64
 #define CFG_TUD_CCID_EPSIZE_HS 512
-#define CFG_TUD_CCID_RX_BUFSIZE 512
+
+// KBDHID Endpoint Size
+#define CFG_TUD_KBDHID_EPSIZE   8
 
 // Port
 #ifndef CFG_TUSB_REPORT_ID_COUNT
 #define CFG_TUSB_REPORT_ID_COUNT 0
 #endif
+
 #define CFG_TUD_EPNUM_CTAPHID 1
 #define CFG_TUD_EPNUM_CCID 2
 #define CFG_TUD_EPNUM_KBDHID 3

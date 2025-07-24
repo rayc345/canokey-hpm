@@ -4,8 +4,8 @@
 
 #include <tusb.h>
 
-void kbd_hid_init();
-void kbd_hid_loop();
+void kbd_hid_init(void);
+void kbd_hid_loop(void);
 void KBDHID_Eject(void);
 
 void kbd_hid_report_complete_cb(uint8_t const* report, uint8_t len);

@@ -62,7 +62,7 @@ int main(void)
 
     while (1)
     {
-        device_loop(1);
+        device_loop();
     }
 
     return 0;

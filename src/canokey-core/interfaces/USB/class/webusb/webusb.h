@@ -12,8 +12,8 @@ bool webusb_handle_device_request(uint8_t rhport, tusb_control_request_t const *
 bool webusb_handle_interface_request(uint8_t rhport, tusb_control_request_t const *request);
 bool webusb_control_xfer_complete_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request);
 
-void webusb_init();
-void webusb_loop();
+void webusb_init(void);
+void webusb_loop(void);
 
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request);
 

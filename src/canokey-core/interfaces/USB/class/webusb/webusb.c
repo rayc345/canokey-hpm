@@ -29,14 +29,14 @@ static uint32_t last_keepalive;
 //==============================================================================
 // Class init and loop
 //==============================================================================
-void webusb_init() {
+void webusb_init(void) {
   state = STATE_IDLE;
   apdu_cmd.data = global_buffer;
   apdu_resp.data = global_buffer;
   last_keepalive = 0;
 }
 
-void webusb_loop() {
+void webusb_loop(void) {
   if (device_get_tick() - last_keepalive > 2000 && state == STATE_HOLD_BUF) {
     DBG_MSG("Release buffer after time-out\n");
     release_apdu_buffer(BUFFER_OWNER_WEBUSB);
@@ -95,6 +95,8 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_requ
 }
 
 bool webusb_control_xfer_complete_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
+  (void)rhport;
+  (void)request;
   // if(state != STATE_IDLE)
   //   DBG_MSG("state=%u stage=%u recipient=%02X\r\n",state, stage, request->bmRequestType_bit.recipient);
   switch (state)
