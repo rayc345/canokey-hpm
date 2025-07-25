@@ -14,7 +14,6 @@
 #include <applets.h>
 #include <device.h>
 #include "usbd.h"
-#include <stdatomic.h>
 
 extern void device_periodic_task(void);
 extern void fido_usb_device_init(uint8_t busid, uint32_t reg_base);

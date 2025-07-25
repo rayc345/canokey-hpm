@@ -6,16 +6,22 @@ cmake_minimum_required(VERSION 3.13)
 set(CONFIG_MBEDTLS 1)
 # set(CONFIG_MBEDTLS_USE_HPM_SDP 1)
 
-set(CONFIG_CHERRYUSB 1)
+# set(CONFIG_CHERRYUSB 1)
+# set(CONFIG_TINYUSB 1)
 set(CONFIG_USB_DEVICE 1)
-set(CONFIG_USB_DEVICE_HID 1)
+# set(CONFIG_USB_DEVICE_HID 1)
+# set(CONFIG_USB_DEVICE_VENDOR 1)
 
 find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
 sdk_compile_definitions(-DMBEDTLS_CONFIG_FILE="hpm_sdk_mbedtls_config.h")
 
+# sdk_compile_definitions(-DCFG_TUSB_MCU=OPT_MCU_HPM)
+# sdk_compile_definitions(-DUSB_HOST_MCU_CORE=HPM_CORE0)
+
 sdk_compile_definitions(USE_MBEDCRYPTO)
 sdk_compile_definitions(DEBUG_OUTPUT)
+# sdk_compile_definitions(CFG_TUSB_DEBUG)
 sdk_compile_definitions(LFS_YES_TRACE)
 sdk_compile_definitions(FLT16_MANT_DIG=0)
 
@@ -50,6 +56,32 @@ sdk_app_src(src/3rd_party/tinycbor/cbortojson.c)
 sdk_app_src(src/3rd_party/tinycbor/cborvalidation.c)
 # sdk_app_src(src/3rd_party/tinycbor/open_memstream.c)
 
+#cherryusb
+sdk_app_inc(src/3rd_party/cherryusb/class/hid)
+sdk_app_inc(src/3rd_party/cherryusb/common)
+sdk_app_inc(src/3rd_party/cherryusb/core)
+sdk_app_inc(src/3rd_party/cherryusb/port/hpmicro)
+sdk_app_src(src/3rd_party/cherryusb/class/hid/usbd_hid.c)
+sdk_app_src(src/3rd_party/cherryusb/core/usbd_core.c)
+sdk_app_src(src/3rd_party/cherryusb/port/hpmicro/usb_dc_hpm.c)
+sdk_app_src(src/3rd_party/cherryusb/port/hpmicro/usb_glue_hpm.c)
+
+
+# # tinyusb
+# sdk_app_inc(src/3rd_party/tinyusb)
+# sdk_app_inc(src/3rd_party/tinyusb/class/hid)
+# sdk_app_inc(src/3rd_party/tinyusb/class/vendor)
+# sdk_app_inc(src/3rd_party/tinyusb/common)
+# sdk_app_inc(src/3rd_party/tinyusb/device)
+# sdk_app_src(src/3rd_party/tinyusb/tusb.c)
+# sdk_app_src(src/3rd_party/tinyusb/class/hid/hid_device.c)
+# sdk_app_src(src/3rd_party/tinyusb/class/vendor/vendor_device.c)
+# sdk_app_src(src/3rd_party/tinyusb/common/tusb_fifo.c)
+# sdk_app_src(src/3rd_party/tinyusb/device/usbd.c)
+# sdk_app_src(src/3rd_party/tinyusb/device/usbd_control.c)
+# sdk_app_src(src/3rd_party/tinyusb/portable/hpm/dcd_hpm.c)
+
+
 # Canokey-core
 sdk_app_inc(src/canokey-core/applets/admin)
 sdk_app_inc(src/canokey-core/applets/ctap)
@@ -77,19 +109,19 @@ sdk_app_src(src/canokey-core/interfaces/NFC/nfc.c)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/ccid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/ctaphid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/kbdhid)
+# sdk_app_inc(src/canokey-core/interfaces/USB/class/hid)
 sdk_app_inc(src/canokey-core/interfaces/USB/class/webusb)
 sdk_app_inc(src/canokey-core/interfaces/USB/device)
 
 sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid.c)
+# sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid_device.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/kbdhid.c)
+# sdk_app_src(src/canokey-core/interfaces/USB/class/hid/hid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/webusb/webusb.c)
 sdk_app_src(src/canokey-core/interfaces/USB/device/usbd.c)
-
-# sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/usbd_ccid.c)
-# sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/usbd_ctaphid.c)
-# sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/usbd_kbdhid.c)
 # sdk_app_src(src/canokey-core/interfaces/USB/device/usb_descriptors.c)
+# sdk_app_src(src/canokey-core/interfaces/USB/device/usb_device.c)
 
 sdk_app_inc(src/canokey-core)
 sdk_app_src(src/canokey-core/apdu.c)
@@ -117,8 +149,9 @@ sdk_app_src(src/canokey-crypto/sha3.c)
 sdk_app_src(src/canokey-crypto/sm3.c)
 
 # Main
-sdk_app_src(src/main.c)
+sdk_app_src(src/admin_vendor.c)
 sdk_app_src(src/device2.c)
+sdk_app_src(src/main.c)
 
 
 generate_ide_projects()

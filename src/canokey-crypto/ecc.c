@@ -131,6 +131,7 @@ static int mbed_gen_random_upto(mbedtls_mpi *n, mbedtls_mpi *max) {
  */
 int sm2_mbedtls_dsa_sign(uint32_t algo, mbedtls_mpi *key, const uint8_t *msg, size_t msg_len, uint8_t *sig,
                          size_t *sig_len) {
+  (void)algo;
   int res = 0;
   mbedtls_ecp_group grp = {};
   mbedtls_ecp_point x1y1p = {};
