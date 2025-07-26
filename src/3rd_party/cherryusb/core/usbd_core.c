@@ -925,6 +925,7 @@ static int usbd_class_request_handler(uint8_t busid, struct usb_setup_packet *se
 static int usbd_vendor_request_handler(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len)
 {
     uint32_t desclen;
+    if ((setup->bmRequestType & USB_REQUEST_RECIPIENT_MASK) == USB_REQUEST_RECIPIENT_DEVICE) {
 #ifdef CONFIG_USBDEV_ADVANCE_DESC
     if (g_usbd_core[busid].descriptors->msosv1_descriptor) {
         if (setup->bRequest == g_usbd_core[busid].descriptors->msosv1_descriptor->vendor_code) {
@@ -1043,6 +1044,7 @@ static int usbd_vendor_request_handler(uint8_t busid, struct usb_setup_packet *s
         }
     }
 #endif
+    }
     for (uint8_t i = 0; i < g_usbd_core[busid].intf_offset; i++) {
         struct usbd_interface *intf = g_usbd_core[busid].intf[i];
 

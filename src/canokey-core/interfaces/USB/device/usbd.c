@@ -37,11 +37,11 @@ enum
 #define HID_CTAPHID_REPORT_DESC_SIZE 34
 
 // WEBUSB
-#define WEBUSB_IN_EP (0x82)
-#define WEBUSB_OUT_EP (0x02)
+// #define WEBUSB_IN_EP (0x82)
+// #define WEBUSB_OUT_EP (0x02)
 
-#define WEBUSB_EP_MPS_HS 512
-#define WEBUSB_EP_MPS_FS 64
+// #define WEBUSB_EP_MPS_HS 512
+// #define WEBUSB_EP_MPS_FS 64
 
 #define USBD_WEBUSB_VENDOR_CODE (0x01)
 #define USBD_WINUSB_VENDOR_CODE (0x02)
@@ -506,7 +506,7 @@ static const uint8_t hid_keyboardhid_report_desc[HID_KBDHID_REPORT_DESC_SIZE] = 
 };
 
 static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ctaphid_buffer[CTAPHID_REPORT_CNT + 1];
-static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t webusb_buffer[WEBUSB_EP_MPS_HS + 1];
+// static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t webusb_buffer[WEBUSB_EP_MPS_HS + 1];
 static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t ccid_buffer[CCID_EP_MPS_HS + 1];
 static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t kbdhid_buffer[KBDHID_INT_EP_SIZE + 1];
 
@@ -534,7 +534,7 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
         kbdhid_state = KBDHID_IDLE;
         /* setup first out ep read transfer */
         usbd_ep_start_read(busid, CTAPHID_OUT_EP, ctaphid_buffer, CTAPHID_REPORT_CNT);
-        usbd_ep_start_read(busid, WEBUSB_OUT_EP, webusb_buffer, usbd_get_ep_mps(busid, WEBUSB_OUT_EP));
+        // usbd_ep_start_read(busid, WEBUSB_OUT_EP, webusb_buffer, usbd_get_ep_mps(busid, WEBUSB_OUT_EP));
         usbd_ep_start_read(busid, CCID_OUT_EP, ccid_buffer, usbd_get_ep_mps(busid, CCID_OUT_EP));
         CTAPHID_Init();
         USBD_WEBUSB_Init();
@@ -589,30 +589,30 @@ static struct usbd_endpoint ctaphid_out_ep = {
 
 struct usbd_interface ctaphidintf;
 
-// WebUSB
-void usbd_webusb_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
-{
-    usbd_ep_start_write(busid, WEBUSB_IN_EP, webusb_buffer, nbytes); /* echo back */
-    /* setup next out ep read transfer */
-    usbd_ep_start_read(busid, ep, webusb_buffer, usbd_get_ep_mps(busid, ep));
-}
+// // WebUSB
+// void usbd_webusb_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
+// {
+//     usbd_ep_start_write(busid, WEBUSB_IN_EP, webusb_buffer, nbytes); /* echo back */
+//     /* setup next out ep read transfer */
+//     usbd_ep_start_read(busid, ep, webusb_buffer, usbd_get_ep_mps(busid, ep));
+// }
 
-void usbd_webusb_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
-{
-    if ((nbytes % usbd_get_ep_mps(busid, ep)) == 0 && nbytes)
-    {
-        /* send zlp */
-        usbd_ep_start_write(busid, ep, NULL, 0);
-    }
-}
+// void usbd_webusb_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
+// {
+//     if ((nbytes % usbd_get_ep_mps(busid, ep)) == 0 && nbytes)
+//     {
+//         /* send zlp */
+//         usbd_ep_start_write(busid, ep, NULL, 0);
+//     }
+// }
 
-struct usbd_endpoint webusb_out_ep = {
-    .ep_addr = WEBUSB_OUT_EP,
-    .ep_cb = usbd_webusb_out};
+// struct usbd_endpoint webusb_out_ep = {
+//     .ep_addr = WEBUSB_OUT_EP,
+//     .ep_cb = usbd_webusb_out};
 
-struct usbd_endpoint webusb_in_ep = {
-    .ep_addr = WEBUSB_IN_EP,
-    .ep_cb = usbd_webusb_in};
+// struct usbd_endpoint webusb_in_ep = {
+//     .ep_addr = WEBUSB_IN_EP,
+//     .ep_cb = usbd_webusb_in};
 
 struct usbd_interface webusbintf;
 
@@ -710,38 +710,7 @@ static struct usbd_endpoint kbdhid_in_ep = {
 
 struct usbd_interface kbdintf;
 
-static int vendor_class_interface_request_handler(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len)
-{
-    (void)busid;
-    (void)data;
-    (void)len;
-
-    USB_LOG_DBG("Vendor Class request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
-
-    switch (setup->bRequest)
-    {
-    case 0x22:
-        if (setup->wValue != 0)
-        {
-            board_led_write(!board_get_led_gpio_off_level());
-        }
-        else
-        {
-            board_led_write(board_get_led_gpio_off_level());
-        }
-        break;
-
-    default:
-        USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
-        return -1;
-    }
-
-    return 0;
-}
-
-// int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
+int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
 
 void canokey_init(uint8_t busid, uintptr_t reg_base)
 {
@@ -751,13 +720,10 @@ void canokey_init(uint8_t busid, uintptr_t reg_base)
     usbd_add_endpoint(busid, &ctaphid_in_ep);
     usbd_add_endpoint(busid, &ctaphid_out_ep);
 
-    // // webusbintf.class_interface_handler = USBD_WEBUSB_Setup;
-    // webusbintf.vendor_handler = USBD_WEBUSB_Setup;
-    // usbd_add_interface(busid, &webusbintf);
-    webusbintf.class_interface_handler = vendor_class_interface_request_handler;
+    webusbintf.vendor_handler = USBD_WEBUSB_Setup;
     usbd_add_interface(busid, &webusbintf);
-    usbd_add_endpoint(busid, &webusb_out_ep);
-    usbd_add_endpoint(busid, &webusb_in_ep);
+    // usbd_add_endpoint(busid, &webusb_out_ep);
+    // usbd_add_endpoint(busid, &webusb_in_ep);
 
     usbd_add_interface(busid, &ccid_intf);
     usbd_add_endpoint(busid, &ccid_out_ep);
