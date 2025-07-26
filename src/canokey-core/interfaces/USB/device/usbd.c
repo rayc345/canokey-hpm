@@ -425,7 +425,7 @@ static const char *string_descriptor_callback(uint8_t speed, uint8_t index)
     return string_descriptors[index];
 }
 
-extern void ctrl_cplt_cb(uint8_t isin);
+extern void USBD_WEBUSB_TxSent(uint8_t busid);
 const struct usb_descriptor canokey_descriptor = {
     .device_descriptor_callback = device_descriptor_callback,
     .config_descriptor_callback = config_descriptor_callback,
@@ -435,6 +435,7 @@ const struct usb_descriptor canokey_descriptor = {
     .msosv2_descriptor = &msosv2_desc,
     .webusb_url_descriptor = &webusb_url_desc,
     .bos_descriptor = &bos_desc,
+    .ep0_vendor_in_cmp_callback = USBD_WEBUSB_TxSent,
 };
 
 /*!< ctap hid report descriptor */

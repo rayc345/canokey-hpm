@@ -31,19 +31,19 @@ uint8_t USBD_WEBUSB_Init(void)
   return 0;
 }
 
-int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **data, uint32_t *len)
+int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *req, uint8_t **data, uint32_t *len)
 {
   (void)busid;
   (void)data;
   (void)len;
   // CCID_eject();
   last_keepalive = device_get_tick();
-  if ((setup->bmRequestType & USB_REQUEST_RECIPIENT_MASK) != USB_REQUEST_RECIPIENT_INTERFACE)
+  if ((req->bmRequestType & USB_REQUEST_RECIPIENT_MASK) != USB_REQUEST_RECIPIENT_INTERFACE)
   {
     // USBD_CtlError(pdev, req);
     return -1;
   }
-  switch (setup->bRequest)
+  switch (req->bRequest)
   {
   case WEBUSB_REQ_CMD:
     if (state != STATE_IDLE && state != STATE_HOLD_BUF)
@@ -60,28 +60,26 @@ int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **d
     }
     state = STATE_HOLD_BUF;
     // DBG_MSG("Buf Acquired\n");
-    if (setup->wLength > APDU_BUFFER_SIZE)
+    if (req->wLength > APDU_BUFFER_SIZE)
     {
       ERR_MSG("Overflow\n");
       // USBD_CtlError(pdev, req);
       return -1;
     }
-    // if (setup->wLength == 0)
-    //   return 0; // Host shouldn't send an empty command
-    DBG_MSG("Recv data %u bytes\n", setup->wLength);
-    // rx_cb_pending = 1;
-    // USBD_CtlPrepareRx(pdev, global_buffer, req->wLength);
-    // apdu_buffer_size = req->wLength;
+    USBD_WEBUSB_RxReady(busid);
+    DBG_MSG("R: CMD ");
+    PRINT_HEX(*data, req->wLength);
+    memcpy(global_buffer, *data, req->wLength);
+    apdu_buffer_size = req->wLength;
     state = STATE_RECVING;
     break;
 
   case WEBUSB_REQ_RESP:
     if (state == STATE_SENDING_RESP)
     {
-      uint16_t len = MIN(apdu_buffer_size, setup->wLength);
+      uint16_t len = MIN(apdu_buffer_size, req->wLength);
       DBG_MSG("Send data %u bytes\n", len);
       memcpy(&data, global_buffer, len);
-      // tx_cb_pending = 1;
       state = STATE_SENT_RESP;
     }
     else
@@ -94,11 +92,10 @@ int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *setup, uint8_t **d
   case WEBUSB_REQ_STAT:
     // DBG_MSG("Send data %u bytes\n", 1);
     memcpy(&data, (uint8_t *)&state, 1);
-    // tx_cb_pending = 1;
     break;
 
   default:
-    USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", setup->bRequest);
+    USB_LOG_WRN("Unhandled Vendor Class bRequest 0x%02x\r\n", req->bRequest);
     // USBD_CtlError(pdev, req);
     return -1;
   }

@@ -22,7 +22,7 @@ sdk_compile_definitions(-DMBEDTLS_CONFIG_FILE="hpm_sdk_mbedtls_config.h")
 sdk_compile_definitions(USE_MBEDCRYPTO)
 sdk_compile_definitions(DEBUG_OUTPUT)
 # sdk_compile_definitions(CFG_TUSB_DEBUG)
-sdk_compile_definitions(LFS_YES_TRACE)
+# sdk_compile_definitions(LFS_YES_TRACE)
 sdk_compile_definitions(FLT16_MANT_DIG=0)
 
 # sdk_compile_options(-fno-inline)

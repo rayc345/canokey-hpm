@@ -1311,6 +1311,10 @@ static void usbd_event_ep0_in_complete_handler(uint8_t busid, uint8_t ep, uint32
                 g_usbd_core[busid].ep0_next_state = USBD_EP0_STATE_SETUP;
             }
 
+            if (g_usbd_core[busid].descriptors->ep0_vendor_in_cmp_callback) {
+                g_usbd_core[busid].descriptors->ep0_vendor_in_cmp_callback(busid);
+            }
+
 #ifdef CONFIG_USBDEV_TEST_MODE
             if (g_usbd_core[busid].test_req) {
                 usbd_execute_test_mode(busid, HI_BYTE(setup->wIndex));
