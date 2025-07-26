@@ -58,7 +58,7 @@
 
 /* Ep0 in and out transfer buffer */
 #ifndef CONFIG_USBDEV_REQUEST_BUFFER_LEN
-#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 512
+#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 1500
 #endif
 
 /* Setup packet log for debug */

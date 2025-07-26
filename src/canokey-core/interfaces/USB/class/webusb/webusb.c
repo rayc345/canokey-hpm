@@ -21,6 +21,7 @@ static uint16_t apdu_buffer_size;
 static CAPDU apdu_cmd;
 static RAPDU apdu_resp;
 static uint32_t last_keepalive;
+static int8_t tx_cb_pending;
 
 uint8_t USBD_WEBUSB_Init(void)
 {
@@ -28,14 +29,13 @@ uint8_t USBD_WEBUSB_Init(void)
   apdu_cmd.data = global_buffer;
   apdu_resp.data = global_buffer;
   last_keepalive = 0;
+  tx_cb_pending = 0;
   return 0;
 }
 
 int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *req, uint8_t **data, uint32_t *len)
 {
   (void)busid;
-  (void)data;
-  (void)len;
   // CCID_eject();
   last_keepalive = device_get_tick();
   if ((req->bmRequestType & USB_REQUEST_RECIPIENT_MASK) != USB_REQUEST_RECIPIENT_INTERFACE)
@@ -46,6 +46,8 @@ int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *req, uint8_t **dat
   switch (req->bRequest)
   {
   case WEBUSB_REQ_CMD:
+    DBG_MSG("Request: CMD ");
+    PRINT_HEX(*data, req->wLength);
     if (state != STATE_IDLE && state != STATE_HOLD_BUF)
     {
       ERR_MSG("Wrong state %d\n", state);
@@ -66,20 +68,22 @@ int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *req, uint8_t **dat
       // USBD_CtlError(pdev, req);
       return -1;
     }
-    USBD_WEBUSB_RxReady(busid);
-    DBG_MSG("R: CMD ");
-    PRINT_HEX(*data, req->wLength);
     memcpy(global_buffer, *data, req->wLength);
     apdu_buffer_size = req->wLength;
     state = STATE_RECVING;
+    USBD_WEBUSB_RxReady(busid);
     break;
 
   case WEBUSB_REQ_RESP:
     if (state == STATE_SENDING_RESP)
     {
-      uint16_t len = MIN(apdu_buffer_size, req->wLength);
-      DBG_MSG("Send data %u bytes\n", len);
-      memcpy(&data, global_buffer, len);
+      *len = MIN(apdu_buffer_size, req->wLength);
+      DBG_MSG("Send data %u bytes\n", *len);
+      memcpy(*data, global_buffer, *len);
+      printf("Tx To Send %d\n", *len);
+      tx_cb_pending = 1;
+      DBG_MSG("RESP: ");
+      PRINT_HEX(*data, *len);
       state = STATE_SENT_RESP;
     }
     else
@@ -91,7 +95,10 @@ int USBD_WEBUSB_Setup(uint8_t busid, struct usb_setup_packet *req, uint8_t **dat
 
   case WEBUSB_REQ_STAT:
     // DBG_MSG("Send data %u bytes\n", 1);
-    memcpy(&data, (uint8_t *)&state, 1);
+    *len = 1;
+    memcpy(*data, (uint8_t *)&state, 1);
+    printf("Tx To Send %d\n", *len);
+    tx_cb_pending = 1;
     break;
 
   default:
@@ -142,9 +149,12 @@ void WebUSB_Loop(void)
 
 void USBD_WEBUSB_TxSent(uint8_t busid)
 {
+  printf("TxSent Callback %02X %02X\n", tx_cb_pending, state);
   // DBG_MSG("state = %d\n", state);
-  if (state == STATE_SENT_RESP)
+  if (tx_cb_pending && state == STATE_SENT_RESP)
   {
+    tx_cb_pending = 0;
+    printf("true TxSent\n");
     // release_apdu_buffer(BUFFER_OWNER_WEBUSB);
     state = STATE_HOLD_BUF;
   }
@@ -155,34 +165,3 @@ void USBD_WEBUSB_RxReady(uint8_t busid)
   //  state should be STATE_RECVING now
   state = STATE_PROCESS;
 }
-
-// uint8_t tx_cb_pending = 0;
-// uint8_t rx_cb_pending = 0;
-
-// void ctrl_cplt_cb(uint8_t isin)
-// {
-//   if (isin == 0)
-//   {
-//     if (tx_cb_pending == 1)
-//     {
-//       tx_cb_pending = 0;
-//       // DBG_MSG("state = %d\n", state);
-//       if (state == STATE_SENT_RESP)
-//       {
-//         // release_apdu_buffer(BUFFER_OWNER_WEBUSB);
-//         state = STATE_HOLD_BUF;
-//         printf("tx_cmp\n");
-//       }
-//     }
-//   }
-//   else
-//   {
-//     if (rx_cb_pending == 1)
-//     {
-//       rx_cb_pending = 0;
-//       //  state should be STATE_RECVING now
-//       state = STATE_PROCESS;
-//       printf("rx_cmp\n");
-//     }
-//   }
-// }

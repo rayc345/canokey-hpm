@@ -1284,7 +1284,7 @@ static void usbd_event_ep0_in_complete_handler(uint8_t busid, uint8_t ep, uint32
                 usb_ep0_state_string[usbd_get_ep0_next_state(busid)],
                 (unsigned int)nbytes,
                 (unsigned int)g_usbd_core[busid].ep0_data_buf_residue);
-
+    
     if (g_usbd_core[busid].ep0_data_buf_residue != 0) {
         /* Start sending the remain data */
         usbd_ep_start_write(busid, USB_CONTROL_IN_EP0, g_usbd_core[busid].ep0_data_buf, g_usbd_core[busid].ep0_data_buf_residue);
@@ -1300,6 +1300,11 @@ static void usbd_event_ep0_in_complete_handler(uint8_t busid, uint8_t ep, uint32
                 * 2. send zlp completely
                 * 3. send last data completely.
                 */
+               
+            if (g_usbd_core[busid].descriptors->ep0_vendor_in_cmp_callback) {
+                g_usbd_core[busid].descriptors->ep0_vendor_in_cmp_callback(busid);
+            }
+
             if (setup->wLength && ((setup->bmRequestType & USB_REQUEST_DIR_MASK) == USB_REQUEST_DIR_IN)) {
                 /* if all data has sent completely, start reading out status */
                 g_usbd_core[busid].ep0_next_state = USBD_EP0_STATE_OUT_STATUS;
@@ -1309,10 +1314,6 @@ static void usbd_event_ep0_in_complete_handler(uint8_t busid, uint8_t ep, uint32
 
             if (g_usbd_core[busid].ep0_next_state == USBD_EP0_STATE_IN_STATUS) {
                 g_usbd_core[busid].ep0_next_state = USBD_EP0_STATE_SETUP;
-            }
-
-            if (g_usbd_core[busid].descriptors->ep0_vendor_in_cmp_callback) {
-                g_usbd_core[busid].descriptors->ep0_vendor_in_cmp_callback(busid);
             }
 
 #ifdef CONFIG_USBDEV_TEST_MODE
