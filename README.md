@@ -2,6 +2,7 @@ Adapted from Canokey Canary firmware version 3.0.3
 
 # Attention:
 Current code does not use TRNG, posing a security risk as HPM5301 does not have one. Relavent code is commented on ```main.c```, you can turn it on for HPM6E00 or other series.
+In the future, HMAC_DRBG would be used, using unique chip ID and user set salt to provide secure randon numbers.
 
 ## A little tweak is needed no matter what hardware you use:
 Situation 1. If your HPM chip does not have its debug UART port connected just like my HPM5301evklite, please do these:
