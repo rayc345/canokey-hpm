@@ -43,8 +43,8 @@ enum
 // #define WEBUSB_EP_MPS_HS 512
 // #define WEBUSB_EP_MPS_FS 64
 
-#define USBD_WEBUSB_VENDOR_CODE (0x01)
-#define USBD_WINUSB_VENDOR_CODE (0x02)
+#define USBD_WEBUSB_VENDOR_CODE (0x08)
+#define USBD_WINUSB_VENDOR_CODE (0x09)
 #define USBD_WINUSB_DESC_SET_LEN (0xB2)
 
 #define WEBUSB_URL_STRINGS 'c', 'o', 'n', 's', 'o', 'l', 'e', '.', 'c', 'a', 'n', 'o', 'k', 'e', 'y', 's', '.', 'o', 'r', 'g'

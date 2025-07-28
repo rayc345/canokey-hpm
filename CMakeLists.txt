@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 3.13)
 set(CONFIG_MBEDTLS 1)
 # set(CONFIG_MBEDTLS_USE_HPM_SDP 1)
 
-# set(CONFIG_CHERRYUSB 1)
+set(CONFIG_CHERRYUSB 1)
 set(CONFIG_USB_DEVICE 1)
-# set(CONFIG_USB_DEVICE_HID 1)
+set(CONFIG_USB_DEVICE_HID 1)
 
 find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
 
@@ -48,16 +48,6 @@ sdk_app_src(src/3rd_party/tinycbor/cborpretty_stdio.c)
 sdk_app_src(src/3rd_party/tinycbor/cbortojson.c)
 sdk_app_src(src/3rd_party/tinycbor/cborvalidation.c)
 # sdk_app_src(src/3rd_party/tinycbor/open_memstream.c)
-
-#cherryusb
-sdk_app_inc(src/3rd_party/cherryusb/class/hid)
-sdk_app_inc(src/3rd_party/cherryusb/common)
-sdk_app_inc(src/3rd_party/cherryusb/core)
-sdk_app_inc(src/3rd_party/cherryusb/port/hpmicro)
-sdk_app_src(src/3rd_party/cherryusb/class/hid/usbd_hid.c)
-sdk_app_src(src/3rd_party/cherryusb/core/usbd_core.c)
-sdk_app_src(src/3rd_party/cherryusb/port/hpmicro/usb_dc_hpm.c)
-sdk_app_src(src/3rd_party/cherryusb/port/hpmicro/usb_glue_hpm.c)
 
 # Canokey-core
 sdk_app_inc(src/canokey-core/applets/admin)
