@@ -1120,7 +1120,6 @@ int piv_process_apdu(const CAPDU *capdu, RAPDU *rapdu) {
   if (INS != PIV_INS_GET_DATA_RESPONSE) piv_do_read = -1;
 
   int ret;
-  DBG_MSG("PIV INS %02X\n", INS);
   switch (INS) {
   case PIV_INS_SELECT:
     ret = piv_select(capdu, rapdu);
@@ -1175,8 +1174,6 @@ int piv_process_apdu(const CAPDU *capdu, RAPDU *rapdu) {
   default:
     EXCEPT(SW_INS_NOT_SUPPORTED);
   }
-
-  DBG_MSG("PIV ret %02X\n", ret);
 
   if (ret < 0) EXCEPT(SW_UNABLE_TO_PROCESS);
   return 0;

@@ -4,10 +4,14 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "rng/hmac_drbg.h"
+
+extern HmacDrbgContext rng_ctx;
 
 void raise_exception(void);
 void print_hex(const uint8_t *buf, size_t len);
 int memcmp_s(const void *p, const void *q, size_t len);
 void random_delay(void);
+void rng_init(void);
 
 #endif //_UTILS_H

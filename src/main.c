@@ -15,6 +15,7 @@
 #include <device.h>
 #include "usbd.h"
 #include <rand.h>
+#include "crypto-util.h"
 
 extern void device_periodic_task(void);
 extern void fido_usb_device_init(uint8_t busid, uint32_t reg_base);
@@ -50,6 +51,7 @@ int main(void)
     printf("cherry usb hid_custom in/out device sample.\n");
 
     littlefs_init();
+    rng_init();
     applets_install();
     init_apdu_buffer();
     canokey_init(0, CONFIG_HPM_USBD_BASE);

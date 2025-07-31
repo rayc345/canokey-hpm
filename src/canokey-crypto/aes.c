@@ -1,25 +1,32 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <aes.h>
-#ifdef USE_MBEDCRYPTO
-#include <mbedtls/aes.h>
+#ifdef USE_CYCLONECRYPTO
+#include "cipher/aes.h"
 
-static int aes(const void *in, void *out, const void *key, int keybits, int mode) {
-  mbedtls_aes_context aes;
-  mbedtls_aes_init(&aes);
-  int ret;
-  if (mode == MBEDTLS_AES_ENCRYPT)
-    ret = mbedtls_aes_setkey_enc(&aes, key, keybits);
+typedef enum {
+  AES_ENCRYPT = 0,
+  AES_DECRYPT = 1
+} CIPHER_MODE;
+
+static int aes(const uint8_t *in, uint8_t *out, const uint8_t *key, const size_t keybytes, CIPHER_MODE mode) {
+  AesContext aes;
+  error_t err = aesInit(&aes, key, keybytes);
+  if(err != NO_ERROR)
+  {
+    return -1;
+  }
+  if (mode == AES_ENCRYPT)
+    aesEncryptBlock(&aes, in, out);
   else
-    ret = mbedtls_aes_setkey_dec(&aes, key, keybits);
-  if (ret < 0) return -1;
-  mbedtls_aes_crypt_ecb(&aes, mode, in, out);
+    aesDecryptBlock(&aes, in, out);
+  aesDeinit(&aes);
   return 0;
 }
 #endif
 
 __attribute__((weak)) int aes128_enc(const uint8_t *in, uint8_t *out, const uint8_t *key) {
-#ifdef USE_MBEDCRYPTO
-  return aes(in, out, key, 128, MBEDTLS_AES_ENCRYPT);
+#ifdef USE_CYCLONECRYPTO
+  return aes(in, out, key, 16, AES_ENCRYPT);
 #else
   (void)in;
   (void)out;
@@ -29,8 +36,8 @@ __attribute__((weak)) int aes128_enc(const uint8_t *in, uint8_t *out, const uint
 }
 
 __attribute__((weak)) int aes128_dec(const uint8_t *in, uint8_t *out, const uint8_t *key) {
-#ifdef USE_MBEDCRYPTO
-  return aes(in, out, key, 128, MBEDTLS_AES_DECRYPT);
+#ifdef USE_CYCLONECRYPTO
+  return aes(in, out, key, 16, AES_DECRYPT);
 #else
   (void)in;
   (void)out;
@@ -40,8 +47,8 @@ __attribute__((weak)) int aes128_dec(const uint8_t *in, uint8_t *out, const uint
 }
 
 __attribute__((weak)) int aes256_enc(const uint8_t *in, uint8_t *out, const uint8_t *key) {
-#ifdef USE_MBEDCRYPTO
-  return aes(in, out, key, 256, MBEDTLS_AES_ENCRYPT);
+#ifdef USE_CYCLONECRYPTO
+  return aes(in, out, key, 32, AES_ENCRYPT);
 #else
   (void)in;
   (void)out;
@@ -51,8 +58,8 @@ __attribute__((weak)) int aes256_enc(const uint8_t *in, uint8_t *out, const uint
 }
 
 __attribute__((weak)) int aes256_dec(const uint8_t *in, uint8_t *out, const uint8_t *key) {
-#ifdef USE_MBEDCRYPTO
-  return aes(in, out, key, 256, MBEDTLS_AES_DECRYPT);
+#ifdef USE_CYCLONECRYPTO
+  return aes(in, out, key, 32, AES_DECRYPT);
 #else
   (void)in;
   (void)out;

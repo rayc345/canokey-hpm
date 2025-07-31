@@ -293,13 +293,22 @@
 #define DSA_SUPPORT DISABLED
 
 // Elliptic curve cryptography support
-#define EC_SUPPORT DISABLED
+#define EC_SUPPORT ENABLED
 
 // ECDH support
-#define ECDH_SUPPORT DISABLED
+#define ECDH_SUPPORT ENABLED
 
 // ECDSA support
 #define ECDSA_SUPPORT ENABLED
+
+// ED25519 support
+#define ED25519_SUPPORT ENABLED
+
+// X25519 support
+#define X25519_SUPPORT ENABLED
+
+// SECP256K1 support
+#define SECP256K1_SUPPORT ENABLED
 
 // SM2 support
 #define SM2_SUPPORT ENABLED
@@ -341,7 +350,7 @@
 #define SHA_CRYPT_SUPPORT DISABLED
 
 // HMAC_DRBG PRNG support
-#define HMAC_DRBG_SUPPORT DISABLED
+#define HMAC_DRBG_SUPPORT ENABLED
 
 // Yarrow PRNG support
 #define YARROW_SUPPORT DISABLED
@@ -350,7 +359,7 @@
 #define OID_SUPPORT DISABLED
 
 // ASN.1 syntax support
-#define ASN1_SUPPORT DISABLED
+#define ASN1_SUPPORT ENABLED
 
 // PEM file support
 #define PEM_SUPPORT DISABLED

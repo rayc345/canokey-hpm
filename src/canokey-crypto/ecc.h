@@ -5,6 +5,7 @@
 #include <algo.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "crypto-util.h"
 
 #define MAX_EC_PRIVATE_KEY 68
 #define MAX_EC_PUBLIC_KEY 132
