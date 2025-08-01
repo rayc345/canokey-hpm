@@ -12,7 +12,7 @@
 #include "crypto-util.h"
 
 
-error_t rsaImportPrivateKey(size_t k, uint_t e, RsaPrivateKey *privateKey, const uint8_t *p, size_t lp, const uint8_t *q, size_t lq)
+error_t rsaImportPrivateKey(RsaPrivateKey *privateKey, size_t k, const uint8_t *pe, const uint8_t *p, size_t lp, const uint8_t *q, size_t lq)
 {
    error_t error;
    Mpi t1;
@@ -27,6 +27,8 @@ error_t rsaImportPrivateKey(size_t k, uint_t e, RsaPrivateKey *privateKey, const
    if(k < 8)
       return ERROR_INVALID_PARAMETER;
 
+  uint_t e = LOAD32BE(pe);
+
    //Check the value of the public exponent
    if(e != 3 && e != 5 && e != 17 && e != 257 && e != 65537)
       return ERROR_INVALID_PARAMETER;
@@ -40,21 +42,10 @@ error_t rsaImportPrivateKey(size_t k, uint_t e, RsaPrivateKey *privateKey, const
    MPI_CHECK(mpiSetValue(&privateKey->e, e));
 
    //Generate a large random prime p
-  //  do
-  //  {
-  //     do
-  //     {
+
         //  //Generate a random number of bit length k/2
         //  MPI_CHECK(mpiRand(&privateKey->p, k / 2, prngAlgo, prngContext));
          MPI_CHECK(mpiImport(&privateKey->p, p, lp, MPI_FORMAT_BIG_ENDIAN));
-         //Set the low bit (this ensures the number is odd)
-         MPI_CHECK(mpiSetBitValue(&privateKey->p, 0, 1));
-         //Set the two highest bits (this ensures that the high bit of n is also set)
-         MPI_CHECK(mpiSetBitValue(&privateKey->p, k / 2 - 1, 1));
-         MPI_CHECK(mpiSetBitValue(&privateKey->p, k / 2 - 2, 1));
-
-         //Test whether p is a probable prime
-         error = mpiCheckProbablePrime(&privateKey->p);
 
       //    //Repeat until an acceptable value is found
       // } while(error == ERROR_INVALID_VALUE);
@@ -76,17 +67,6 @@ error_t rsaImportPrivateKey(size_t k, uint_t e, RsaPrivateKey *privateKey, const
          //Generate random number of bit length k - k/2
         //  MPI_CHECK(mpiRand(&privateKey->q, k - (k / 2), prngAlgo, prngContext));
          MPI_CHECK(mpiImport(&privateKey->q, q, lq, MPI_FORMAT_BIG_ENDIAN));
-         //Set the low bit (this ensures the number is odd)
-         MPI_CHECK(mpiSetBitValue(&privateKey->q, 0, 1));
-         //Set the two highest bits (this ensures that the high bit of n is also set)
-         MPI_CHECK(mpiSetBitValue(&privateKey->q, k - (k / 2) - 1, 1));
-         MPI_CHECK(mpiSetBitValue(&privateKey->q, k - (k / 2) - 2, 1));
-
-      //    //Test whether q is a probable prime
-      //    error = mpiCheckProbablePrime(&privateKey->q);
-
-      //    //Repeat until an acceptable value is found
-      // } while(error == ERROR_INVALID_VALUE);
 
       //Check status code
       MPI_CHECK(error);
@@ -252,7 +232,7 @@ __attribute__((weak)) int rsa_get_public_key(rsa_key_t *key, uint8_t *n) {
   //  printf("RSA Error %s %d %02X", __func__, __LINE__, err);
   //mpiFree(&ne);
   
-  err = rsaImportPrivateKey(key->nbits, 65537, &priKey, key->p, sizeof(key->p), key->q, sizeof(key->q));
+  err = rsaImportPrivateKey(&priKey, key->nbits, key->e, key->p, key->nbits / 16, key->q, key->nbits / 16);
   if(err != NO_ERROR)
     printf("RSA Error %s %d %02X", __func__, __LINE__, err);
   err = rsaGeneratePublicKey(&priKey, &pubKey);
@@ -307,7 +287,7 @@ __attribute__((weak)) int rsa_private(const rsa_key_t *key, const uint8_t *input
   int ret = 0;
   RsaPrivateKey priKey;
   rsaInitPrivateKey(&priKey);
-  error_t err = rsaImportPrivateKey(key->nbits, 65537, &priKey, key->p, sizeof(key->p), key->q, sizeof(key->q));
+  error_t err = rsaImportPrivateKey(&priKey, key->nbits, key->e, key->p, key->nbits / 16, key->q, key->nbits / 16);
   if(err != NO_ERROR)
     printf("RSA Error %s %d %02X", __func__, __LINE__, err);
   Mpi m,c;

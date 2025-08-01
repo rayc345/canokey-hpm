@@ -389,7 +389,7 @@ __attribute__((weak)) int K__short_weierstrass_ecdh(key_type_t type, const uint8
   err = ecGeneratePublicKey(&ecdhctx.da, &ecdhctx.da.q);
   if(err != NO_ERROR)
     printf("ECC Error %s %d %02X", __func__, __LINE__, err);
-  err = ecdhImportPeerPublicKey(&ecdhctx, receiver_pub_key, PRIVATE_KEY_LENGTH[type], EC_PUBLIC_KEY_FORMAT_RAW);
+  err = ecdhImportPeerPublicKey(&ecdhctx, receiver_pub_key, PUBLIC_KEY_LENGTH[type], EC_PUBLIC_KEY_FORMAT_RAW);
   if(err != NO_ERROR)
     printf("ECC Error %s %d %02X", __func__, __LINE__, err);
   size_t sz;
