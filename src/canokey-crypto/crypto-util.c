@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <rand.h>
 #include <stdio.h>
-#include "rng/hmac_drbg.h"
 
 #ifdef USE_CYCLONECRYPTO
+#include "rng/hmac_drbg.h"
 HmacDrbgContext rng_ctx;
 #endif
 

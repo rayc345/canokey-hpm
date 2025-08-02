@@ -5,7 +5,6 @@
 #include "lfs.h"
 #include "hpm_flash.h"
 #include "fs.h"
-#include "applets.h"
 
 #define READ_SIZE 32
 #define STORAGE_SECTOR 40

@@ -11,7 +11,7 @@
 #include "usb_config.h"
 #include "lfs_port.h"
 #include <apdu.h>
-#include <applets.h>
+#include "ctap.h"
 #include <device.h>
 #include "usbd.h"
 #include <rand.h>
@@ -52,8 +52,8 @@ int main(void)
 
     littlefs_init();
     rng_init();
-    applets_install();
-    init_apdu_buffer();
+    ctap_install(0);
+    // init_apdu_buffer();
     canokey_init(0, CONFIG_HPM_USBD_BASE);
 
     board_timer_create(10, device_periodic_task);

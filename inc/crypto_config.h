@@ -71,7 +71,7 @@
 #define RIPEMD160_SUPPORT DISABLED
 
 // SHA-1 hash support
-#define SHA1_SUPPORT ENABLED
+#define SHA1_SUPPORT DISABLED
 
 // SHA-224 hash support
 #define SHA224_SUPPORT DISABLED
@@ -83,7 +83,7 @@
 #define SHA384_SUPPORT DISABLED
 
 // SHA-512 hash support
-#define SHA512_SUPPORT ENABLED
+#define SHA512_SUPPORT DISABLED
 
 // SHA-512/224 hash support
 #define SHA512_224_SUPPORT DISABLED
@@ -137,7 +137,7 @@
 #define BLAKE2S256_SUPPORT DISABLED
 
 // SM3 hash support
-#define SM3_SUPPORT ENABLED
+#define SM3_SUPPORT DISABLED
 
 // Tiger hash support
 #define TIGER_SUPPORT DISABLED
@@ -197,10 +197,10 @@
 #define IDEA_SUPPORT DISABLED
 
 // DES block cipher support
-#define DES_SUPPORT ENABLED
+#define DES_SUPPORT DISABLED
 
 // Triple DES block cipher support
-#define DES3_SUPPORT ENABLED
+#define DES3_SUPPORT DISABLED
 
 // AES block cipher support
 #define AES_SUPPORT ENABLED
@@ -254,7 +254,7 @@
 #define ECB_SUPPORT DISABLED
 
 // CBC mode support
-#define CBC_SUPPORT ENABLED
+#define CBC_SUPPORT DISABLED
 
 // CFB mode support
 #define CFB_SUPPORT DISABLED
@@ -287,7 +287,7 @@
 #define DH_SUPPORT DISABLED
 
 // RSA support
-#define RSA_SUPPORT ENABLED
+#define RSA_SUPPORT DISABLED
 
 // DSA support
 #define DSA_SUPPORT DISABLED
@@ -302,16 +302,16 @@
 #define ECDSA_SUPPORT ENABLED
 
 // ED25519 support
-#define ED25519_SUPPORT ENABLED
+#define ED25519_SUPPORT DISABLED
 
 // X25519 support
-#define X25519_SUPPORT ENABLED
+#define X25519_SUPPORT DISABLED
 
 // SECP256K1 support
 #define SECP256K1_SUPPORT ENABLED
 
 // SM2 support
-#define SM2_SUPPORT ENABLED
+#define SM2_SUPPORT DISABLED
 
 // Key encapsulation mechanism support
 #define KEM_SUPPORT DISABLED

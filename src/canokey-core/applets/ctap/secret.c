@@ -10,9 +10,6 @@
 #include <memzero.h>
 #include <rand.h>
 #include <device.h>
-#include <sm3.h>
-
-extern CTAP_sm2_attr ctap_sm2_attr;
 
 static uint8_t pin_token[PIN_TOKEN_SIZE];
 static ecc_key_t ka_key;
@@ -213,10 +210,7 @@ key_type_t cose_alg_to_key_type(int alg) {
   switch (alg) {
   case COSE_ALG_ES256:
     return SECP256R1;
-  case COSE_ALG_EDDSA:
-    return ED25519;
   default:
-    if (ctap_sm2_attr.enabled && alg == ctap_sm2_attr.algo_id) return SM2;
     return KEY_TYPE_PKC_END;
   }
 }
@@ -349,41 +343,15 @@ int sign_with_private_key(int32_t alg_type, ecc_key_t *key, const uint8_t *input
     return -1;
   }
 
-  if (key_type == ED25519) {
-    if (ecc_complete_key(key_type, key) < 0) {
-      ERR_MSG("Failed to complete key\n");
-      return -1;
-    }
-    if (ecc_sign(key_type, key, input, len, sig) < 0) {
-      ERR_MSG("Failed to sign\n");
-      return -1;
-    }
-    return SIGNATURE_LENGTH[key_type];
-  }
-  if (key_type == SM2) {
-    if (ecc_complete_key(key_type, key) < 0) {  // Compute Z requiring the public key
-      ERR_MSG("Failed to complete key\n");
-      return -1;
-    }
-    uint8_t z[SM3_DIGEST_LENGTH];
-    sm2_z(SM2_ID_DEFAULT, key, z);
-    sm3_init();
-    sm3_update(z, SM3_DIGEST_LENGTH);
-    sm3_update(input, len);
-    sm3_final(sig);
-  } else {
-    sha256_init();
-    sha256_update(input, len);
-    sha256_final(sig);
-  }
+  sha256_init();
+  sha256_update(input, len);
+  sha256_final(sig);
   DBG_MSG("Digest: ");
   PRINT_HEX(sig, PRIVATE_KEY_LENGTH[key_type]);
   if (ecc_sign(key_type, key, sig, PRIVATE_KEY_LENGTH[key_type], sig) < 0) {
     ERR_MSG("Failed to sign\n");
     return -1;
   }
-
-  if (key_type == SM2) return SIGNATURE_LENGTH[key_type];
 
   // For ES256, convert the signature to ansi format
   DBG_MSG("Raw signature: ");

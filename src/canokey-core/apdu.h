@@ -63,11 +63,7 @@ typedef struct {
     return 0;                                                                                                          \
   } while (0)
 
-// Chainings
-
-#define APDU_CHAINING_NOT_LAST_BLOCK 0x01
-#define APDU_CHAINING_LAST_BLOCK 0x02
-#define APDU_CHAINING_OVERFLOW 0x03
+#define ABDATA_SIZE (APDU_BUFFER_SIZE + 2)
 
 typedef struct {
   CAPDU capdu;
@@ -79,22 +75,5 @@ typedef struct {
   uint16_t sent;
 } RAPDU_CHAINING;
 
-extern uint8_t *global_buffer;
-
-enum {
-  BUFFER_OWNER_NONE = 1,
-  BUFFER_OWNER_CCID,
-  BUFFER_OWNER_WEBUSB,
-  BUFFER_OWNER_USBD, // store the configuration descriptor during a control transfer
-};
-
-void init_apdu_buffer(void); // implement in ccid.c for reusing the ccid buffer
-int acquire_apdu_buffer(uint8_t owner);
-int release_apdu_buffer(uint8_t owner);
-
-int build_capdu(CAPDU *capdu, const uint8_t *cmd, uint16_t len);
-int apdu_input(CAPDU_CHAINING *ex, const CAPDU *sh);
-int apdu_output(RAPDU_CHAINING *ex, RAPDU *sh);
-void process_apdu(CAPDU *capdu, RAPDU *rapdu);
 
 #endif // CANOKEY_CORE__APDU_H
