@@ -27,9 +27,8 @@
 
 #ifdef USE_CYCLONECRYPTO
 #include "hash/sm3.h"
-#endif
-
 Sm3Context sm3_ctx;
+#endif
 
 __attribute__((weak)) void sm3_init(void) {
 #ifdef USE_CYCLONECRYPTO

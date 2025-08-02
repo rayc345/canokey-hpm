@@ -22,13 +22,18 @@
  */
 
 #include <rand.h>
+#include "crypto-util.h"
 
-static uint32_t seed = 0;
+#ifdef USE_CYCLONECRYPTO
+#include "rng/hmac_drbg.h"
 
 __attribute__((weak)) uint32_t random32(void) {
-  seed = 1664525 * seed + 1013904223;
-  return seed;
+  uint32_t output;
+  hmacDrbgGenerate(&rng_ctx, &output, sizeof(output));
+  return output;
 }
+
+#endif
 
 __attribute__((weak)) void random_buffer(uint8_t *buf, size_t len) {
   uint32_t r = 0;
@@ -56,8 +61,3 @@ void random_permute(char *str, size_t len) {
   }
 }
 
-int mbedtls_rnd(void *ctx, unsigned char *buf, size_t n) {
-  (void)ctx;
-  random_buffer(buf, n);
-  return 0;
-}

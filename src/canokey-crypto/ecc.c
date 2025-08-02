@@ -22,7 +22,9 @@ static const EcCurve *grp_id[] = {
     [SECP256R1] = SECP256R1_CURVE,
     [SECP256K1] = SECP256K1_CURVE,
     [SECP384R1] = SECP384R1_CURVE,
-    [SM2] = SECP384R1_CURVE,
+    [SM2] = SM2_CURVE,
+    [ED25519] = ED25519_CURVE,
+    [X25519] = X25519_CURVE,
 };
 
 #endif
@@ -176,6 +178,7 @@ __attribute__((weak)) int sm2_z(const uint8_t *id, const ecc_key_t *key, uint8_t
 }
 
 __attribute__((weak)) int K__short_weierstrass_generate(key_type_t type, ecc_key_t *key) {
+  int ret = 1;
 #ifdef USE_CYCLONECRYPTO
   error_t err;
   EcPrivateKey prikey;
@@ -184,57 +187,33 @@ __attribute__((weak)) int K__short_weierstrass_generate(key_type_t type, ecc_key
   ecInitPublicKey(&pubkey);
   err = ecGenerateKeyPair(HMAC_DRBG_PRNG_ALGO, &rng_ctx, grp_id[type], &prikey, &pubkey);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   size_t sz;
   err = ecExportPrivateKey(&prikey, key->pri, &sz);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecGeneratePublicKey(&prikey, &pubkey);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecExportPublicKey(&pubkey, key->pub, &sz, EC_PUBLIC_KEY_FORMAT_RAW);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
-    
+  {
+    ret = -1;
+    goto end;
+  }
+end:
   ecFreePrivateKey(&prikey);
   ecFreePublicKey(&pubkey);
-  // if (type == SM2) {
-  //   int res = 0;
-  //   mbedtls_ecp_group grp = {};
-  //   mbedtls_ecp_point x1y1p = {};
-  //   int mres = 0;
-  //   mbedtls_mpi k = {};
-  //   mbedtls_mpi_init(&k);
-  //   mbedtls_ecp_point_init(&x1y1p);
-  //   mbedtls_ecp_group_init(&grp);
-  //   mres = LOAD_GROUP_A(sm2);
-  //   do {
-  //     res = mbed_gen_random_upto(&k, &grp.N);
-  //     if (res) goto out;
-  //     res = -1;
-  //     mres = mbedtls_ecp_mul(&grp, &x1y1p, &k, &grp.G, mbedtls_rnd, NULL);
-  //     if (mres) goto out;
-  //   } while (!mbedtls_mpi_cmp_mpi(&k, &grp.N));
-  //   res = 0;
-  //   mbedtls_mpi_write_binary(&k, key->pri, SM2_INT_SIZE_BYTES);
-  //   mbedtls_mpi_write_binary(&x1y1p.X, key->pub, SM2_INT_SIZE_BYTES);
-  //   mbedtls_mpi_write_binary(&x1y1p.Y, key->pub + SM2_INT_SIZE_BYTES, SM2_INT_SIZE_BYTES);
-  // out:
-  //   mbedtls_ecp_point_free(&x1y1p);
-  //   mbedtls_mpi_free(&k);
-  //   mbedtls_ecp_group_free(&grp);
-  //   return res;
-  // }
 
-  // mbedtls_ecp_keypair keypair;
-  // mbedtls_ecp_keypair_init(&keypair);
-
-  // mbedtls_ecp_gen_key(grp_id[type], &keypair, mbedtls_rnd, NULL);
-  // mbedtls_mpi_write_binary(&keypair.d, key->pri, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_write_binary(&keypair.Q.X, key->pub, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_write_binary(&keypair.Q.Y, key->pub + PRIVATE_KEY_LENGTH[type], PRIVATE_KEY_LENGTH[type]);
-
-  // mbedtls_ecp_keypair_free(&keypair);
 #else
   (void)type;
   (void)key;
@@ -243,31 +222,20 @@ __attribute__((weak)) int K__short_weierstrass_generate(key_type_t type, ecc_key
 }
 
 __attribute__((weak)) int K__short_weierstrass_verify_private_key(key_type_t type, const ecc_key_t *key) {
+  int ret = 1;
 #ifdef USE_CYCLONECRYPTO
   error_t err;
   EcPrivateKey prikey;
   ecInitPrivateKey(&prikey);
   err = ecImportPrivateKey(&prikey, grp_id[type], key->pri, PRIVATE_KEY_LENGTH[type]);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = 0;
+    goto end;
+  }
+end:
   ecFreePrivateKey(&prikey);
-  return err == NO_ERROR ? 1 : 0;
-  // mbedtls_mpi d;
-  // mbedtls_ecp_group grp;
-  // mbedtls_mpi_init(&d);
-  // mbedtls_ecp_group_init(&grp);
-
-  // if (type == SM2) {
-  //   LOAD_GROUP_A(sm2);
-  // } else {
-  //   mbedtls_ecp_group_load(&grp, grp_id[type]);
-  // }
-  // mbedtls_mpi_read_binary(&d, key->pri, PRIVATE_KEY_LENGTH[type]);
-  // int res = mbedtls_ecp_check_privkey(&grp, &d) == 0 ? 1 : 0;
-
-  // mbedtls_mpi_free(&d);
-  // mbedtls_ecp_group_free(&grp);
-  // return res;
+  return ret;
 #else
   (void)type;
   (void)key;
@@ -276,6 +244,7 @@ __attribute__((weak)) int K__short_weierstrass_verify_private_key(key_type_t typ
 }
 
 __attribute__((weak)) int K__short_weierstrass_complete_key(key_type_t type, ecc_key_t *key) {
+  int ret = 0;
 #ifdef USE_CYCLONECRYPTO
   error_t err;
   EcPrivateKey prikey;
@@ -284,36 +253,26 @@ __attribute__((weak)) int K__short_weierstrass_complete_key(key_type_t type, ecc
   ecInitPublicKey(&pubkey);
   err = ecImportPrivateKey(&prikey, grp_id[type], key->pri, PRIVATE_KEY_LENGTH[type]);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecGeneratePublicKey(&prikey, &pubkey);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   size_t sz;
   err = ecExportPublicKey(&pubkey, key->pub, &sz, EC_PUBLIC_KEY_FORMAT_RAW);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
+end:
   ecFreePrivateKey(&prikey);
   ecFreePublicKey(&pubkey);
-  // mbedtls_mpi d;
-  // mbedtls_ecp_group grp;
-  // mbedtls_ecp_point pnt;
-  // mbedtls_mpi_init(&d);
-  // mbedtls_ecp_group_init(&grp);
-  // mbedtls_ecp_point_init(&pnt);
-
-  // if (type == SM2) {
-  //   LOAD_GROUP_A(sm2);
-  // } else {
-  //   mbedtls_ecp_group_load(&grp, grp_id[type]);
-  // }
-  // mbedtls_mpi_read_binary(&d, key->pri, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_ecp_mul(&grp, &pnt, &d, &grp.G, mbedtls_rnd, NULL);
-  // mbedtls_mpi_write_binary(&pnt.X, key->pub, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_write_binary(&pnt.Y, key->pub + PRIVATE_KEY_LENGTH[type], PRIVATE_KEY_LENGTH[type]);
-
-  // mbedtls_mpi_free(&d);
-  // mbedtls_ecp_group_free(&grp);
-  // mbedtls_ecp_point_free(&pnt);
 #else
   (void)type;
   (void)key;
@@ -323,47 +282,33 @@ __attribute__((weak)) int K__short_weierstrass_complete_key(key_type_t type, ecc
 
 __attribute__((weak)) int K__short_weierstrass_sign(key_type_t type, const ecc_key_t *key,
                                                     const uint8_t *data_or_digest, size_t len, uint8_t *sig) {
+  int ret = 0;
 #ifdef USE_CYCLONECRYPTO
   EcdsaSignature raw_sig;
   ecdsaInitSignature(&raw_sig);
   EcPrivateKey priKey;
   error_t err;
   err = ecImportPrivateKey(&priKey, grp_id[type], key->pri, PRIVATE_KEY_LENGTH[type]);
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  if(err != NO_ERROR)
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecdsaGenerateSignature(HMAC_DRBG_PRNG_ALGO, &rng_ctx, &priKey, data_or_digest, len, &raw_sig);
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  if(err != NO_ERROR)
+  {
+    ret = -1;
+    goto end;
+  }
   size_t rtn;
   err = ecdsaExportSignature(&raw_sig, sig, &rtn, ECDSA_SIGNATURE_FORMAT_RAW);
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  if(err != NO_ERROR)
+  {
+    ret = -1;
+    goto end;
+  } 
+end:
   ecdsaFreeSignature(&raw_sig);
-  // if (type == SM2) {
-
-  //   // mbedtls_mpi bn;
-  //   // mbedtls_mpi_init(&bn);
-  //   // mbedtls_mpi_read_binary(&bn, key->pri, PRIVATE_KEY_LENGTH[type]);
-  //   // size_t sig_len = 64;
-  //   // int ret = sm2_mbedtls_dsa_sign(0, &bn, data_or_digest, len, sig, &sig_len);
-  //   // mbedtls_mpi_free(&bn);
-  //   // return ret;
-  // }
-
-  // mbedtls_mpi r, s, d;
-  // mbedtls_ecp_group grp;
-  // mbedtls_mpi_init(&r);
-  // mbedtls_mpi_init(&s);
-  // mbedtls_mpi_init(&d);
-  // mbedtls_ecp_group_init(&grp);
-
-  // mbedtls_ecp_group_load(&grp, grp_id[type]);
-  // mbedtls_mpi_read_binary(&d, key->pri, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_ecdsa_sign(&grp, &r, &s, &d, data_or_digest, PRIVATE_KEY_LENGTH[type], mbedtls_rnd, NULL);
-  // mbedtls_mpi_write_binary(&r, sig, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_write_binary(&s, sig + PRIVATE_KEY_LENGTH[type], PRIVATE_KEY_LENGTH[type]);
-
-  // mbedtls_mpi_free(&r);
-  // mbedtls_mpi_free(&s);
-  // mbedtls_mpi_free(&d);
-  // mbedtls_ecp_group_free(&grp);
 #else
   (void)type;
   (void)key;
@@ -376,103 +321,56 @@ __attribute__((weak)) int K__short_weierstrass_sign(key_type_t type, const ecc_k
 
 __attribute__((weak)) int K__short_weierstrass_ecdh(key_type_t type, const uint8_t *priv_key,
                                                     const uint8_t *receiver_pub_key, uint8_t *out) {
+  int ret = 0;
 #ifdef USE_CYCLONECRYPTO
   EcdhContext ecdhctx;
   error_t err;
   ecdhInit(&ecdhctx);
   err = ecdhSetCurve(&ecdhctx, grp_id[type]);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecImportPrivateKey(&ecdhctx.da, grp_id[type], priv_key, PRIVATE_KEY_LENGTH[type]);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecGeneratePublicKey(&ecdhctx.da, &ecdhctx.da.q);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   err = ecdhImportPeerPublicKey(&ecdhctx, receiver_pub_key, PUBLIC_KEY_LENGTH[type], EC_PUBLIC_KEY_FORMAT_RAW);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
+  {
+    ret = -1;
+    goto end;
+  }
   size_t sz;
-  err = ecdhComputeSharedSecret(&ecdhctx, out, 2 * PRIVATE_KEY_LENGTH[type], &sz);
+  err = ecdhComputeSharedSecret(&ecdhctx, out, PRIVATE_KEY_LENGTH[type], &sz);
   if(err != NO_ERROR)
-    printf("ECC Error %s %d %02X", __func__, __LINE__, err);
-
+  {
+    ret = -1;
+    goto end;
+  }
+end:
   ecdhFree(&ecdhctx);
-  // if (type == SM2) {
-  //   // LOAD_GROUP_A(sm2);
-
-  // } else {
-  //   // mbedtls_ecp_group_load(&grp, grp_id[type]);
-
-  // }
-  // mbedtls_mpi d;
-  // mbedtls_ecp_group grp;
-  // mbedtls_ecp_point pnt;
-  // mbedtls_mpi_init(&d);
-  // mbedtls_ecp_group_init(&grp);
-  // mbedtls_ecp_point_init(&pnt);
-
-  // if (type == SM2) {
-  //   LOAD_GROUP_A(sm2);
-  // } else {
-  //   mbedtls_ecp_group_load(&grp, grp_id[type]);
-  // }
-  // mbedtls_mpi_read_binary(&d, priv_key, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_read_binary(&pnt.X, receiver_pub_key, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_read_binary(&pnt.Y, receiver_pub_key + PRIVATE_KEY_LENGTH[type], PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_lset(&pnt.Z, 1);
-  // mbedtls_ecp_mul(&grp, &pnt, &d, &pnt, mbedtls_rnd, NULL);
-  // mbedtls_mpi_write_binary(&pnt.X, out, PRIVATE_KEY_LENGTH[type]);
-  // mbedtls_mpi_write_binary(&pnt.Y, out + PRIVATE_KEY_LENGTH[type], PRIVATE_KEY_LENGTH[type]);
-
-  // mbedtls_mpi_free(&d);
-  // mbedtls_ecp_group_free(&grp);
-  // mbedtls_ecp_point_free(&pnt);
 #else
   (void)type;
   (void)priv_key;
   (void)receiver_pub_key;
   (void)out;
 #endif
-  return 0;
+  return ret;
 }
 
 __attribute__((weak)) void K__ed25519_publickey(const K__ed25519_secret_key sk, K__ed25519_public_key pk) {
 #ifdef USE_CYCLONECRYPTO
   ed25519GeneratePublicKey(sk, pk);
-  // // calc sha512 of sk
-  // uint8_t digest[SHA512_DIGEST_LENGTH];
-  // sha512_raw(sk, sizeof(K__ed25519_secret_key), digest);
-
-  // // normalize
-  // digest[0] &= 248;
-  // digest[31] &= 127;
-  // digest[31] |= 64;
-
-  // // init ed25519 group
-  // mbedtls_ecp_group ed25519;
-  // mbedtls_ecp_group_init(&ed25519);
-  // mbedtls_ecp_group_load(&ed25519, MBEDTLS_ECP_DP_CURVE25519);
-
-  // // load digest
-  // mbedtls_mpi s;
-  // mbedtls_mpi_init(&s);
-  // mbedtls_mpi_read_binary_le(&s, digest, 32);
-
-  // // P = s*B
-  // mbedtls_ecp_point p;
-  // mbedtls_ecp_point_init(&p);
-  // mbedtls_ecp_mul(&ed25519, &p, &s, &ed25519.G, mbedtls_rnd, NULL);
-
-  // // write result
-  // size_t output_len;
-  // mbedtls_ecp_point_write_binary(&ed25519, &p, MBEDTLS_ECP_PF_COMPRESSED, &output_len, pk,
-  //                                sizeof(K__ed25519_public_key));
-
-  // // cleanup
-  // mbedtls_ecp_group_free(&ed25519);
-  // mbedtls_mpi_free(&s);
-  // mbedtls_ecp_point_free(&p);
 #else
   (void)sk;
   (void)pk;
@@ -484,79 +382,6 @@ __attribute__((weak)) void K__ed25519_sign(const unsigned char *m, size_t mlen, 
 
 #ifdef USE_CYCLONECRYPTO
   ed25519GenerateSignature(sk, pk, m, mlen, NULL, 0, 0, rs);
-  // // calc sha512 of sk
-  // uint8_t digest[SHA512_DIGEST_LENGTH];
-  // sha512_raw(sk, sizeof(K__ed25519_secret_key), digest);
-  // // normalize
-  // digest[0] &= 248;
-  // digest[31] &= 127;
-  // digest[31] |= 64;
-
-  // // digest[0..32] is s, digest[32..64] is prefix
-
-  // // sha512(prefix || m)
-  // uint8_t digest_m[SHA512_DIGEST_LENGTH];
-  // sha512_init();
-  // sha512_update(digest + 32, 32);
-  // sha512_update(m, mlen);
-  // sha512_final(digest_m);
-
-  // // init ed25519 group
-  // mbedtls_ecp_group ed25519;
-  // mbedtls_ecp_group_init(&ed25519);
-  // mbedtls_ecp_group_load(&ed25519, MBEDTLS_ECP_DP_CURVE25519);
-
-  // // load digest_m into r
-  // mbedtls_mpi r;
-  // mbedtls_mpi_init(&r);
-  // mbedtls_mpi_read_binary_le(&r, digest_m, SHA512_DIGEST_LENGTH);
-
-  // // P = r*B
-  // mbedtls_ecp_point p;
-  // mbedtls_ecp_point_init(&p);
-  // mbedtls_ecp_mul(&ed25519, &p, &r, &ed25519.G, mbedtls_rnd, NULL);
-
-  // // write result to RS[0..32]
-  // size_t output_len;
-  // mbedtls_ecp_point_write_binary(&ed25519, &p, MBEDTLS_ECP_PF_COMPRESSED, &output_len, rs,
-  //                                sizeof(K__ed25519_public_key));
-
-  // // k = sha512(R, pk, m)
-  // uint8_t digest_k[SHA512_DIGEST_LENGTH];
-  // sha512_init();
-  // sha512_update(rs, 32);
-  // sha512_update(pk, sizeof(K__ed25519_public_key));
-  // sha512_update(m, mlen);
-  // sha512_final(digest_k);
-
-  // mbedtls_mpi k;
-  // mbedtls_mpi_init(&k);
-  // mbedtls_mpi_read_binary_le(&k, digest_k, SHA512_DIGEST_LENGTH);
-  // mbedtls_mpi_mod_mpi(&k, &k, &ed25519.N);
-
-  // // s
-  // mbedtls_mpi s;
-  // mbedtls_mpi_init(&s);
-  // mbedtls_mpi_read_binary_le(&s, digest, 32);
-  // mbedtls_mpi_mod_mpi(&s, &s, &ed25519.N);
-
-  // // k * s
-  // mbedtls_mpi_mul_mpi(&k, &k, &s);
-  // mbedtls_mpi_mod_mpi(&k, &k, &ed25519.N);
-
-  // // r + k * s
-  // mbedtls_mpi_add_mpi(&k, &k, &r);
-  // mbedtls_mpi_mod_mpi(&k, &k, &ed25519.N);
-
-  // // write result to RS[32..64]
-  // mbedtls_mpi_write_binary_le(&k, rs + 32, 32);
-
-  // // cleanup
-  // mbedtls_ecp_group_free(&ed25519);
-  // mbedtls_mpi_free(&r);
-  // mbedtls_ecp_point_free(&p);
-  // mbedtls_mpi_free(&k);
-  // mbedtls_mpi_free(&s);
 #else
   (void)m;
   (void)mlen;
@@ -570,38 +395,6 @@ __attribute__((weak)) void K__x25519(K__x25519_key shared_secret, const K__x2551
                                      const K__x25519_key public_key) {
 #ifdef USE_CYCLONECRYPTO
   x25519(shared_secret, private_key, public_key);
-  // mbedtls_ecp_point base;
-  // mbedtls_ecp_point public;
-  // mbedtls_ecp_group cv25519;
-  // mbedtls_mpi sk;
-
-  // // init
-  // mbedtls_ecp_point_init(&base);
-  // mbedtls_ecp_point_init(&public);
-  // mbedtls_ecp_group_init(&cv25519);
-  // mbedtls_mpi_init(&sk);
-
-  // // load group
-  // mbedtls_ecp_group_load(&cv25519, MBEDTLS_ECP_DP_CURVE25519);
-
-  // // read base point
-  // mbedtls_mpi_read_binary(&base.X, public_key, 32);
-  // mbedtls_mpi_free(&base.Y);
-  // mbedtls_mpi_lset(&base.Z, 1);
-
-  // // read secret
-  // mbedtls_mpi_read_binary(&sk, private_key, 32);
-
-  // // multiply scalar
-  // mbedtls_ecp_mul(&cv25519, &public, &sk, &base, mbedtls_rnd, NULL);
-
-  // // write result
-  // mbedtls_mpi_write_binary(&public.X, shared_secret, 32);
-
-  // mbedtls_ecp_point_free(&base);
-  // mbedtls_ecp_point_free(&public);
-  // mbedtls_ecp_group_free(&cv25519);
-  // mbedtls_mpi_free(&sk);
 #else
   (void)shared_secret;
   (void)private_key;

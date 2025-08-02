@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include "rng/hmac_drbg.h"
 
+#ifdef USE_CYCLONECRYPTO
 HmacDrbgContext rng_ctx;
+#endif
 
 __attribute__((weak)) void raise_exception(void) {}
 
@@ -33,7 +35,8 @@ void random_delay(void) {
     __asm volatile("nop");
 }
 
-void rng_init(void)
+#ifdef USE_CYCLONECRYPTO
+__attribute__((weak)) void rng_init(void)
 {
   uint8_t seed[] = {
       0xaf, 0xb0, 0xb0, 0xb8, 0x71, 0x9f, 0xf9, 0x28,
@@ -42,4 +45,5 @@ void rng_init(void)
       0x0f, 0x4f, 0xa3, 0x32, 0x70, 0xb1, 0x98, 0x53};
   hmacDrbgInit(&rng_ctx, SHA256_HASH_ALGO);
   hmacDrbgSeed(&rng_ctx, seed, sizeof(seed));
+#endif
 }
