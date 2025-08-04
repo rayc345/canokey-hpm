@@ -21,11 +21,10 @@ const uint32_t MIN_TOUCH_TIME = 20;
 
 static volatile uint32_t blinking_until;
 
+extern uint32_t ticks;
 uint32_t device_get_tick(void)
 {
-  // return HAL_GetTick();
-  uint64_t expected_ticks = hpm_csr_get_core_cycle() / (uint64_t)clock_get_core_clock_ticks_per_ms();
-  return (uint32_t)expected_ticks;
+  return ticks;
 }
 
 static bool GPIO_Touched(void)
