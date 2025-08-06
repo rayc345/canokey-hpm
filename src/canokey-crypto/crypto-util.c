@@ -36,7 +36,7 @@ void random_delay(void) {
 }
 
 #ifdef USE_CYCLONECRYPTO
-__attribute__((weak)) void rng_init(void)
+__attribute__((weak)) void canokey_rng_init(void)
 {
   uint8_t seed[] = {
       0xaf, 0xb0, 0xb0, 0xb8, 0x71, 0x9f, 0xf9, 0x28,
