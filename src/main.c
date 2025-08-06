@@ -49,7 +49,6 @@ void tick_ms_isr(void)
     }
 }
 
-
 int main(void)
 {
     board_init();
@@ -81,7 +80,7 @@ int main(void)
 
 
     littlefs_init();
-    crypto_rng_init();
+    canokey_rng_init();
     applets_install();
     init_apdu_buffer();
     canokey_init(0, CONFIG_HPM_USBD_BASE);
