@@ -23,8 +23,6 @@ static const EcCurve *grp_id[] = {
     [SECP256K1] = SECP256K1_CURVE,
     [SECP384R1] = SECP384R1_CURVE,
     [SM2] = SM2_CURVE,
-    [ED25519] = ED25519_CURVE,
-    [X25519] = X25519_CURVE,
 };
 
 #endif
@@ -32,30 +30,41 @@ static const EcCurve *grp_id[] = {
 static const K__ed25519_public_key gx = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9};
 
-static void x25519_key_from_random(K__x25519_key private_key) {
+void x25519_key_from_random(K__x25519_key private_key)
+{
   private_key[31] &= 0xf8;
   private_key[0] &= 0x7f;
   private_key[0] |= 0x40;
 }
 
-void swap_big_number_endian(uint8_t buf[32]) {
-  for (int i = 0; i < 16; ++i) {
+void swap_big_number_endian(uint8_t buf[32])
+{
+  for (int i = 0; i < 16; ++i)
+  {
     uint8_t tmp = buf[31 - i];
     buf[31 - i] = buf[i];
     buf[i] = tmp;
   }
 }
 
-int ecc_generate(key_type_t type, ecc_key_t *key) {
-  if (!IS_ECC(type)) return -1;
+int ecc_generate(key_type_t type, ecc_key_t *key)
+{
+  if (!IS_ECC(type))
+    return -1;
 
-  if (IS_SHORT_WEIERSTRASS(type)) {
+  if (IS_SHORT_WEIERSTRASS(type))
+  {
     return K__short_weierstrass_generate(type, key);
-  } else { // ed25519 & x25519
+  }
+  else
+  { // ed25519 & x25519
     random_buffer(key->pri, PRIVATE_KEY_LENGTH[type]);
-    if (type == ED25519) {
+    if (type == ED25519)
+    {
       K__ed25519_publickey(key->pri, key->pub);
-    } else {
+    }
+    else
+    {
       x25519_key_from_random(key->pri);
       K__x25519(key->pub, key->pri, gx);
     }
@@ -63,13 +72,19 @@ int ecc_generate(key_type_t type, ecc_key_t *key) {
   }
 }
 
-int ecc_sign(key_type_t type, const ecc_key_t *key, const uint8_t *data_or_digest, size_t len, uint8_t *sig) {
-  if (!IS_ECC(type)) return -1;
+int ecc_sign(key_type_t type, const ecc_key_t *key, const uint8_t *data_or_digest, size_t len, uint8_t *sig)
+{
+  if (!IS_ECC(type))
+    return -1;
 
-  if (IS_SHORT_WEIERSTRASS(type)) {
+  if (IS_SHORT_WEIERSTRASS(type))
+  {
     return K__short_weierstrass_sign(type, key, data_or_digest, len, sig);
-  } else { // ed25519 & x25519
-    if (type == X25519) return -1;
+  }
+  else
+  { // ed25519 & x25519
+    if (type == X25519)
+      return -1;
     K__ed25519_signature sig_buf;
     K__ed25519_sign(data_or_digest, len, key->pri, key->pub, sig_buf);
     memcpy(sig, sig_buf, SIGNATURE_LENGTH[ED25519]);
@@ -77,38 +92,57 @@ int ecc_sign(key_type_t type, const ecc_key_t *key, const uint8_t *data_or_diges
   }
 }
 
-int ecc_verify_private_key(key_type_t type, ecc_key_t *key) {
-  if (!IS_ECC(type)) return -1;
+int ecc_verify_private_key(key_type_t type, ecc_key_t *key)
+{
+  if (!IS_ECC(type))
+    return -1;
 
-  if (IS_SHORT_WEIERSTRASS(type)) {
+  if (IS_SHORT_WEIERSTRASS(type))
+  {
     return K__short_weierstrass_verify_private_key(type, key);
-  } else { // ed25519 & x25519
+  }
+  else
+  { // ed25519 & x25519
     return 1;
   }
 }
 
-int ecc_complete_key(key_type_t type, ecc_key_t *key) {
-  if (!IS_ECC(type)) return -1;
+int ecc_complete_key(key_type_t type, ecc_key_t *key)
+{
+  if (!IS_ECC(type))
+    return -1;
 
-  if (IS_SHORT_WEIERSTRASS(type)) {
+  if (IS_SHORT_WEIERSTRASS(type))
+  {
     return K__short_weierstrass_complete_key(type, key);
-  } else { // ed25519 & x25519
-    if (type == ED25519) {
+  }
+  else
+  { // ed25519 & x25519
+    if (type == ED25519)
+    {
       K__ed25519_publickey(key->pri, key->pub);
-    } else {
+    }
+    else
+    {
       K__x25519(key->pub, key->pri, gx);
     }
     return 0;
   }
 }
 
-int ecdh(key_type_t type, const uint8_t *priv_key, const uint8_t *receiver_pub_key, uint8_t *out) {
-  if (!IS_ECC(type)) return -1;
+int ecdh(key_type_t type, const uint8_t *priv_key, const uint8_t *receiver_pub_key, uint8_t *out)
+{
+  if (!IS_ECC(type))
+    return -1;
 
-  if (IS_SHORT_WEIERSTRASS(type)) {
+  if (IS_SHORT_WEIERSTRASS(type))
+  {
     return K__short_weierstrass_ecdh(type, priv_key, receiver_pub_key, out);
-  } else { // ed25519 & x25519
-    if (type == ED25519) return -1;
+  }
+  else
+  { // ed25519 & x25519
+    if (type == ED25519)
+      return -1;
     uint8_t pub[32];
     memcpy(pub, receiver_pub_key, 32);
     swap_big_number_endian(pub);
@@ -118,27 +152,34 @@ int ecdh(key_type_t type, const uint8_t *priv_key, const uint8_t *receiver_pub_k
   }
 }
 
-size_t ecdsa_sig2ansi(uint8_t key_len, const uint8_t *input, uint8_t *output) {
+size_t ecdsa_sig2ansi(uint8_t key_len, const uint8_t *input, uint8_t *output)
+{
   int leading_zero_len1 = 0;
   int leading_zero_len2 = 0;
   for (uint8_t i = 0; i < key_len; ++i)
     if (input[i] == 0)
       ++leading_zero_len1;
-    else {
-      if (input[i] >= 0x80) --leading_zero_len1;
+    else
+    {
+      if (input[i] >= 0x80)
+        --leading_zero_len1;
       break;
     }
   for (uint8_t i = key_len; i < key_len * 2; ++i)
     if (input[i] == 0)
       ++leading_zero_len2;
-    else {
-      if (input[i] >= 0x80) --leading_zero_len2;
+    else
+    {
+      if (input[i] >= 0x80)
+        --leading_zero_len2;
       break;
     }
   uint8_t part1_len = key_len - leading_zero_len1;
   uint8_t part2_len = key_len - leading_zero_len2;
-  if (leading_zero_len1 < 0) leading_zero_len1 = 0;
-  if (leading_zero_len2 < 0) leading_zero_len2 = 0;
+  if (leading_zero_len1 < 0)
+    leading_zero_len1 = 0;
+  if (leading_zero_len2 < 0)
+    leading_zero_len2 = 0;
   memmove(output + 6 + part1_len + (part2_len == key_len + 1 ? 1 : 0), input + key_len + leading_zero_len2,
           key_len - leading_zero_len2);
   memmove(output + 4 + (part1_len == key_len + 1 ? 1 : 0), input + leading_zero_len1, key_len - leading_zero_len1);
@@ -146,14 +187,17 @@ size_t ecdsa_sig2ansi(uint8_t key_len, const uint8_t *input, uint8_t *output) {
   output[1] = part1_len + part2_len + 4;
   output[2] = 0x02;
   output[3] = part1_len;
-  if (part1_len == key_len + 1) output[4] = 0;
+  if (part1_len == key_len + 1)
+    output[4] = 0;
   output[4 + part1_len] = 0x02;
   output[5 + part1_len] = part2_len;
-  if (part2_len == key_len + 1) output[6 + part1_len] = 0;
+  if (part2_len == key_len + 1)
+    output[6 + part1_len] = 0;
   return 6 + part1_len + part2_len;
 }
 
-__attribute__((weak)) int sm2_z(const uint8_t *id, const ecc_key_t *key, uint8_t *z) {
+__attribute__((weak)) int sm2_z(const uint8_t *id, const ecc_key_t *key, uint8_t *z)
+{
   const uint8_t a[] = {0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                        0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC};
   const uint8_t b[] = {0x28, 0xE9, 0xFA, 0x9E, 0x9D, 0x9F, 0x5E, 0x34, 0x4D, 0x5A, 0x9E, 0x4B, 0xCF, 0x65, 0x09, 0xA7,
@@ -177,7 +221,8 @@ __attribute__((weak)) int sm2_z(const uint8_t *id, const ecc_key_t *key, uint8_t
   return 0;
 }
 
-__attribute__((weak)) int K__short_weierstrass_generate(key_type_t type, ecc_key_t *key) {
+__attribute__((weak)) int K__short_weierstrass_generate(key_type_t type, ecc_key_t *key)
+{
   int ret = 1;
 #ifdef USE_CYCLONECRYPTO
   error_t err;
@@ -186,26 +231,26 @@ __attribute__((weak)) int K__short_weierstrass_generate(key_type_t type, ecc_key
   ecInitPrivateKey(&prikey);
   ecInitPublicKey(&pubkey);
   err = ecGenerateKeyPair(HMAC_DRBG_PRNG_ALGO, &rng_ctx, grp_id[type], &prikey, &pubkey);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   size_t sz;
   err = ecExportPrivateKey(&prikey, key->pri, &sz);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecGeneratePublicKey(&prikey, &pubkey);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecExportPublicKey(&pubkey, key->pub, &sz, EC_PUBLIC_KEY_FORMAT_RAW);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
@@ -218,17 +263,18 @@ end:
   (void)type;
   (void)key;
 #endif
-  return 0;
+  return ret;
 }
 
-__attribute__((weak)) int K__short_weierstrass_verify_private_key(key_type_t type, const ecc_key_t *key) {
+__attribute__((weak)) int K__short_weierstrass_verify_private_key(key_type_t type, const ecc_key_t *key)
+{
   int ret = 1;
 #ifdef USE_CYCLONECRYPTO
   error_t err;
   EcPrivateKey prikey;
   ecInitPrivateKey(&prikey);
   err = ecImportPrivateKey(&prikey, grp_id[type], key->pri, PRIVATE_KEY_LENGTH[type]);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = 0;
     goto end;
@@ -243,7 +289,8 @@ end:
 #endif
 }
 
-__attribute__((weak)) int K__short_weierstrass_complete_key(key_type_t type, ecc_key_t *key) {
+__attribute__((weak)) int K__short_weierstrass_complete_key(key_type_t type, ecc_key_t *key)
+{
   int ret = 0;
 #ifdef USE_CYCLONECRYPTO
   error_t err;
@@ -252,20 +299,20 @@ __attribute__((weak)) int K__short_weierstrass_complete_key(key_type_t type, ecc
   ecInitPrivateKey(&prikey);
   ecInitPublicKey(&pubkey);
   err = ecImportPrivateKey(&prikey, grp_id[type], key->pri, PRIVATE_KEY_LENGTH[type]);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecGeneratePublicKey(&prikey, &pubkey);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   size_t sz;
   err = ecExportPublicKey(&pubkey, key->pub, &sz, EC_PUBLIC_KEY_FORMAT_RAW);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
@@ -277,11 +324,12 @@ end:
   (void)type;
   (void)key;
 #endif
-  return 0;
+  return ret;
 }
 
 __attribute__((weak)) int K__short_weierstrass_sign(key_type_t type, const ecc_key_t *key,
-                                                    const uint8_t *data_or_digest, size_t len, uint8_t *sig) {
+                                                    const uint8_t *data_or_digest, size_t len, uint8_t *sig)
+{
   int ret = 0;
 #ifdef USE_CYCLONECRYPTO
   EcdsaSignature raw_sig;
@@ -289,24 +337,24 @@ __attribute__((weak)) int K__short_weierstrass_sign(key_type_t type, const ecc_k
   EcPrivateKey priKey;
   error_t err;
   err = ecImportPrivateKey(&priKey, grp_id[type], key->pri, PRIVATE_KEY_LENGTH[type]);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecdsaGenerateSignature(HMAC_DRBG_PRNG_ALGO, &rng_ctx, &priKey, data_or_digest, len, &raw_sig);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   size_t rtn;
   err = ecdsaExportSignature(&raw_sig, sig, &rtn, ECDSA_SIGNATURE_FORMAT_RAW);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
-  } 
+  }
 end:
   ecdsaFreeSignature(&raw_sig);
 #else
@@ -316,43 +364,44 @@ end:
   (void)len;
   (void)sig;
 #endif
-  return 0;
+  return ret;
 }
 
 __attribute__((weak)) int K__short_weierstrass_ecdh(key_type_t type, const uint8_t *priv_key,
-                                                    const uint8_t *receiver_pub_key, uint8_t *out) {
+                                                    const uint8_t *receiver_pub_key, uint8_t *out)
+{
   int ret = 0;
 #ifdef USE_CYCLONECRYPTO
   EcdhContext ecdhctx;
   error_t err;
   ecdhInit(&ecdhctx);
   err = ecdhSetCurve(&ecdhctx, grp_id[type]);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecImportPrivateKey(&ecdhctx.da, grp_id[type], priv_key, PRIVATE_KEY_LENGTH[type]);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecGeneratePublicKey(&ecdhctx.da, &ecdhctx.da.q);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   err = ecdhImportPeerPublicKey(&ecdhctx, receiver_pub_key, PUBLIC_KEY_LENGTH[type], EC_PUBLIC_KEY_FORMAT_RAW);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
   }
   size_t sz;
   err = ecdhComputeSharedSecret(&ecdhctx, out, PRIVATE_KEY_LENGTH[type], &sz);
-  if(err != NO_ERROR)
+  if (err != NO_ERROR)
   {
     ret = -1;
     goto end;
@@ -368,7 +417,8 @@ end:
   return ret;
 }
 
-__attribute__((weak)) void K__ed25519_publickey(const K__ed25519_secret_key sk, K__ed25519_public_key pk) {
+__attribute__((weak)) void K__ed25519_publickey(const K__ed25519_secret_key sk, K__ed25519_public_key pk)
+{
 #ifdef USE_CYCLONECRYPTO
   ed25519GeneratePublicKey(sk, pk);
 #else
@@ -378,7 +428,8 @@ __attribute__((weak)) void K__ed25519_publickey(const K__ed25519_secret_key sk, 
 }
 
 __attribute__((weak)) void K__ed25519_sign(const unsigned char *m, size_t mlen, const K__ed25519_secret_key sk,
-                                           const K__ed25519_public_key pk, K__ed25519_signature rs) {
+                                           const K__ed25519_public_key pk, K__ed25519_signature rs)
+{
 
 #ifdef USE_CYCLONECRYPTO
   ed25519GenerateSignature(sk, pk, m, mlen, NULL, 0, 0, rs);
@@ -392,9 +443,18 @@ __attribute__((weak)) void K__ed25519_sign(const unsigned char *m, size_t mlen, 
 }
 
 __attribute__((weak)) void K__x25519(K__x25519_key shared_secret, const K__x25519_key private_key,
-                                     const K__x25519_key public_key) {
+                                     const K__x25519_key public_key)
+{
 #ifdef USE_CYCLONECRYPTO
-  x25519(shared_secret, private_key, public_key);
+  K__ed25519_public_key pkey;
+  K__ed25519_secret_key skey;
+  K__x25519_key resultkey;
+  memcpy(pkey, public_key, 32);
+  swap_big_number_endian(pkey);
+  memcpy(skey, private_key, 32);
+  swap_big_number_endian(skey);
+  x25519(shared_secret, skey, pkey);
+  swap_big_number_endian(shared_secret);
 #else
   (void)shared_secret;
   (void)private_key;

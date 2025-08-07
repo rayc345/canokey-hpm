@@ -17,6 +17,7 @@
 #include "usbd.h"
 #include <rand.h>
 #include "crypto-util.h"
+#include "ecc.h"
 
 extern void device_periodic_task(void);
 uint32_t random32(void)
@@ -34,21 +35,22 @@ uint32_t random32(void)
 
 uint32_t device_get_tick2(void)
 {
-  uint64_t expected_ticks = hpm_csr_get_core_cycle() / (uint64_t)clock_get_core_clock_ticks_per_ms();
-  return (uint32_t)expected_ticks;
+    uint64_t expected_ticks = hpm_csr_get_core_cycle() / (uint64_t)clock_get_core_clock_ticks_per_ms();
+    return (uint32_t)expected_ticks;
 }
 
 uint32_t ticks;
 SDK_DECLARE_EXT_ISR_M(IRQn_GPTMR2, tick_ms_isr)
 void tick_ms_isr(void)
 {
-    if (gptmr_check_status(HPM_GPTMR2, GPTMR_CH_RLD_STAT_MASK(1))) {
+    if (gptmr_check_status(HPM_GPTMR2, GPTMR_CH_RLD_STAT_MASK(1)))
+    {
         gptmr_clear_status(HPM_GPTMR2, GPTMR_CH_RLD_STAT_MASK(1));
         board_led_toggle();
         ticks++;
     }
 }
-
+void x25519_key_from_random(K__x25519_key private_key);
 int main(void)
 {
     board_init();
@@ -77,7 +79,6 @@ int main(void)
     gptmr_start_counter(HPM_GPTMR2, 1);
     gptmr_enable_irq(HPM_GPTMR2, GPTMR_CH_RLD_IRQ_MASK(1));
     intc_m_enable_irq_with_priority(IRQn_GPTMR2, 1);
-
 
     littlefs_init();
     canokey_rng_init();
