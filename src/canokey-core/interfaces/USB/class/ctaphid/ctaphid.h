@@ -106,8 +106,6 @@ typedef struct {
   alignas(4) uint8_t data[MAX_CTAP_BUFSIZE];
 } CTAPHID_Channel;
 
-typedef struct _USBD_HandleTypeDef USBD_HandleTypeDef;
-
 uint8_t CTAPHID_Init(void);
 uint8_t CTAPHID_OutEvent(uint8_t *data);
 void CTAPHID_SendKeepAlive(uint8_t status);

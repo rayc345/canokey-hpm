@@ -29,7 +29,7 @@
 
 __attribute__((weak)) uint32_t random32(void) {
   uint32_t output;
-  hmacDrbgGenerate(&rng_ctx, &output, sizeof(output));
+  hmacDrbgGenerate(&rng_ctx, (uint8_t *)&output, sizeof(output));
   return output;
 }
 

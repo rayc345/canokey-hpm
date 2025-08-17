@@ -154,12 +154,42 @@ __attribute__((weak)) int rsa_generate_key(rsa_key_t *key, uint16_t nbits) {
     goto end;
   }
   key->nbits = nbits;
-  mpiExport(&priKey.dp, key->dp, sizeof(key->dp), MPI_FORMAT_BIG_ENDIAN);
-  mpiExport(&priKey.dq, key->dq, sizeof(key->dq), MPI_FORMAT_BIG_ENDIAN);
-  mpiExport(&priKey.p, key->p, sizeof(key->p), MPI_FORMAT_BIG_ENDIAN);
-  mpiExport(&priKey.q, key->q, sizeof(key->q), MPI_FORMAT_BIG_ENDIAN);
-  mpiExport(&priKey.qinv, key->qinv, sizeof(key->qinv), MPI_FORMAT_BIG_ENDIAN);
-  mpiExport(&priKey.e, key->e, sizeof(key->e), MPI_FORMAT_BIG_ENDIAN);
+  err = mpiExport(&priKey.dp, key->dp, sizeof(key->dp), MPI_FORMAT_BIG_ENDIAN);
+  if(err != NO_ERROR)
+  {
+    ret = 1;
+    goto end;
+  }
+  err = mpiExport(&priKey.dq, key->dq, sizeof(key->dq), MPI_FORMAT_BIG_ENDIAN);
+  if(err != NO_ERROR)
+  {
+    ret = 1;
+    goto end;
+  }
+  err = mpiExport(&priKey.p, key->p, sizeof(key->p), MPI_FORMAT_BIG_ENDIAN);
+  if(err != NO_ERROR)
+  {
+    ret = 1;
+    goto end;
+  }
+  err = mpiExport(&priKey.q, key->q, sizeof(key->q), MPI_FORMAT_BIG_ENDIAN);
+  if(err != NO_ERROR)
+  {
+    ret = 1;
+    goto end;
+  }
+  err = mpiExport(&priKey.qinv, key->qinv, sizeof(key->qinv), MPI_FORMAT_BIG_ENDIAN);
+  if(err != NO_ERROR)
+  {
+    ret = 1;
+    goto end;
+  }
+  err = mpiExport(&priKey.e, key->e, sizeof(key->e), MPI_FORMAT_BIG_ENDIAN);
+  if(err != NO_ERROR)
+  {
+    ret = 1;
+    goto end;
+  }
 end:
   rsaFreePrivateKey(&priKey);
   return ret;

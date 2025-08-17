@@ -448,7 +448,6 @@ __attribute__((weak)) void K__x25519(K__x25519_key shared_secret, const K__x2551
 #ifdef USE_CYCLONECRYPTO
   K__ed25519_public_key pkey;
   K__ed25519_secret_key skey;
-  K__x25519_key resultkey;
   memcpy(pkey, public_key, 32);
   swap_big_number_endian(pkey);
   memcpy(skey, private_key, 32);

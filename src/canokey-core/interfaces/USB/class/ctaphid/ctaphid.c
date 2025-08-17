@@ -3,7 +3,7 @@
 #include <ctaphid.h>
 #include <device.h>
 #include <rand.h>
-#include "usbd.h"
+#include "usb_device.h"
 
 static CTAPHID_FRAME frame;
 static CTAPHID_Channel channel;
@@ -60,6 +60,17 @@ static void CTAPHID_SendResponse(uint32_t cid, uint8_t cmd, uint8_t *data, uint1
     CTAPHID_SendFrame();
     off += copied;
   }
+}
+
+void CTAPHID_SendKeepAlive(uint8_t status) {
+  memset(&frame, 0, sizeof(frame));
+  frame.cid = channel.cid;
+  frame.type = TYPE_INIT;
+  frame.init.cmd |= CTAPHID_KEEPALIVE;
+  frame.init.bcnth = 0;
+  frame.init.bcntl = 1;
+  frame.init.data[0] = status;
+  CTAPHID_SendFrame();
 }
 
 static void CTAPHID_SendErrorResponse(uint32_t cid, uint8_t code) {
@@ -233,15 +244,4 @@ uint8_t CTAPHID_Loop(uint8_t wait_for_user) {
 consume_frame:
   has_frame = 0;
   return ret;
-}
-
-void CTAPHID_SendKeepAlive(uint8_t status) {
-  memset(&frame, 0, sizeof(frame));
-  frame.cid = channel.cid;
-  frame.type = TYPE_INIT;
-  frame.init.cmd |= CTAPHID_KEEPALIVE;
-  frame.init.bcnth = 0;
-  frame.init.bcntl = 1;
-  frame.init.data[0] = status;
-  CTAPHID_SendFrame();
 }

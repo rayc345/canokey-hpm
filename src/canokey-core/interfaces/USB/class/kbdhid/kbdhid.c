@@ -3,7 +3,7 @@
 #include <common.h>
 #include <device.h>
 #include <kbdhid.h>
-#include <usbd.h>
+#include <usb_device.h>
 #include <pass.h>
 
 #define EJECT_KEY 0x03

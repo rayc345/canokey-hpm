@@ -45,5 +45,5 @@ __attribute__((weak)) void canokey_rng_init(void)
       0x0f, 0x4f, 0xa3, 0x32, 0x70, 0xb1, 0x98, 0x53};
   hmacDrbgInit(&rng_ctx, SHA256_HASH_ALGO);
   hmacDrbgSeed(&rng_ctx, seed, sizeof(seed));
-#endif
 }
+#endif

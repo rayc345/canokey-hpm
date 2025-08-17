@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <device.h>
 #include <admin.h>
-#include <usbd.h>
+#include <usb_device.h>
 
 #define VENDOR_NFC_SET 0x01
 #define VENDOR_NFC_GET 0x02

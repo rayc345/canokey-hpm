@@ -292,7 +292,7 @@ sdk_app_src(src/canokey-core/interfaces/USB/class/ccid/ccid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/ctaphid/ctaphid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/kbdhid/kbdhid.c)
 sdk_app_src(src/canokey-core/interfaces/USB/class/webusb/webusb.c)
-sdk_app_src(src/canokey-core/interfaces/USB/device/usbd.c)
+sdk_app_src(src/canokey-core/interfaces/USB/device/usb_device.c)
 
 sdk_app_inc(src/canokey-core)
 sdk_app_src(src/canokey-core/apdu.c)

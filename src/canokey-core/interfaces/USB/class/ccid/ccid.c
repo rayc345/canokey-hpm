@@ -4,7 +4,7 @@
 #include <ccid.h>
 #include <common.h>
 #include <device.h>
-#include "usbd.h"
+#include "usb_device.h"
 
 #define CCID_UpdateCommandStatus(cmd_status, icc_status) bulkin_short.bStatus = bulkin_data.bStatus = (cmd_status | icc_status)
 #define CCID_CardStatus() (bulkin_short.bStatus & BM_ICC_STATUS_MASK)
